@@ -36,7 +36,7 @@ Based on https://www.geeksforgeeks.org/connectivity-in-a-directed-graph/
 bool freeDTG::isStronglyConnected(std::list<int> targetValues)
 {
     if (targetValues.size() == 0) {return true;}
-    std::vector<bool> visited(targetValues.size(), false);
+    std::vector<bool> visited(numVal, false);
 
     freeDTG::DFS(targetValues.front(), &visited);
 
@@ -105,6 +105,32 @@ freeDTG freeDTG::getTranspose()
     }
     return inversion;
 }
+
+bool freeDTG::isReachable(int value, std::list<int> targetValues)
+{
+    if (targetValues.size() == 0) {return true;}
+    std::vector<bool> visited(numVal, false);
+
+    freeDTG::DFS(value, &visited);
+
+    for (int i = 0; i < visited.size(); i++)
+    {
+        if (visited[i] == false)
+        {
+            for (int target : targetValues)
+            {
+                if (target == i)
+                {
+                    //std::cout << "couldn't reach: " << i << " from: " << targetValues.front() << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 
 void freeDTG::printFreeDTG()
 {

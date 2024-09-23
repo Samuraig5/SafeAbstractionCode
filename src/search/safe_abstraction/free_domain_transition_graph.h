@@ -21,8 +21,9 @@ class freeDTG
     void externallyRequired(int val);
     void externallyCaused(int val);
     bool isStronglyConnected(std::list<int> targetValues);
-    void DFS(int v, std::vector<bool> *visited);
+    void DFS(int value, std::vector<bool> *visited);
     freeDTG getTranspose();
+    bool isReachable(int value, std::list<int> targetValues);
     void printFreeDTG();
     void printExternalInformation();
 };

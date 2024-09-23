@@ -24,25 +24,48 @@ void abstractor::find_safe_variables(std::shared_ptr<AbstractTask> original_task
   std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
   std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(dtgs);
 
-  for (const auto &free_dtgs : free_dtgs)
+  for (const auto &free_dtg : free_dtgs)
   {
-  	free_dtgs->printFreeDTG();
-    free_dtgs->printExternalInformation();
+  	free_dtg->printFreeDTG();
+    free_dtg->printExternalInformation();
 
   	std::list<int> externallyRequiredValues;
-  	for (int i = 0; i < free_dtgs->getExternallyRequiredValues().size(); ++i) {
-  		if (free_dtgs->getExternallyRequiredValues()[i]) {externallyRequiredValues.push_back(i);}
+  	for (int i = 0; i < free_dtg->getExternallyRequiredValues().size(); ++i) {
+  		if (free_dtg->getExternallyRequiredValues()[i]) {externallyRequiredValues.push_back(i);}
   	}
-  	if (free_dtgs->isStronglyConnected(externallyRequiredValues))
+  	if (free_dtg->isStronglyConnected(externallyRequiredValues))
     {
-  		std::cout << "Externally required values of " << free_dtgs->getVariable() << " are strongly connected in the free DTG" << std::endl;
+  		std::cout << "Externally required values of " << free_dtg->getVariable() << " are strongly connected in the free DTG" << std::endl;
     }
     else
     {
-    	std::cout << "Externally required values of " << free_dtgs->getVariable() << " are NOT strongly connected in the free DTG" << std::endl;
+    	std::cout << "Externally required values of " << free_dtg->getVariable() << " are NOT strongly connected in the free DTG" << std::endl;
     }
 
-    std::cout << std::endl;
+  	std::list<int> externallyCausedValues;
+  	for (int i = 0; i < free_dtg->getExternallyCausedValues().size(); ++i) {
+  		if (free_dtg->getExternallyCausedValues()[i]) {externallyCausedValues.push_back(i);}
+  	}
+
+    bool allReqReachableByCaused = true;
+    for (int extCausedVal : externallyCausedValues)
+    {
+    	if (!free_dtg->isReachable(extCausedVal, externallyCausedValues))
+        {
+        	allReqReachableByCaused = false;
+                break;
+        }
+    }
+
+  	if (allReqReachableByCaused)
+  	{
+  		std::cout << "Externally required values of " << free_dtg->getVariable() << " are reachable by externally caused values" << std::endl;
+  	}
+  	else
+  	{
+  		std::cout << "Externally required values of " << free_dtg->getVariable() << " are NOT reachable by externally caused values" << std::endl;
+  	}
+  	std::cout << std::endl;
   }
   std::cout << "=======================================================================" << std::endl;
 }
@@ -123,6 +146,7 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                 }
             }
         }
+    	std::cout << std::endl;
 	}
 	return free_dtgs;
 }
