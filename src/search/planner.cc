@@ -43,7 +43,10 @@ int main(int argc, const char **argv) {
           below. The 'int' is just a placeholder for whatever data type we will
           need here in the end.
         */
-        abstractor::find_safe_variables(original_task);
+        std::list<int> safe_variables = abstractor::find_safe_variables(original_task);
+        cout << "Safe Variables: " << endl;
+        for (int val : safe_variables) {cout << val << ", ";}
+        cout << endl;
 
         int info = 0;
         /*

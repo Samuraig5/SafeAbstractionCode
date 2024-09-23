@@ -14,7 +14,7 @@ class abstractor {
 
 
   public:
-    static void find_safe_variables(std::shared_ptr<AbstractTask> original_task);
+    static std::list<int> find_safe_variables(std::shared_ptr<AbstractTask> original_task);
 };
 
 #endif //ABSTRACTOR_H
