@@ -131,6 +131,10 @@ class DomainTransitionGraph {
     DomainTransitionGraph(const DomainTransitionGraph &other); // copying forbidden
 public:
     DomainTransitionGraph(int var_index, int node_count);
+
+    //Very hacky way to get data needed for safe abstraction
+    int get_var() const { return var; }
+    std::vector<ValueNode> get_nodes() const { return nodes; }
 };
 }
 

@@ -1,11 +1,11 @@
-#include "freeDTG.h"
+#include "free_domain_transition_graph.h"
 #include <list>
 
 freeDTG::freeDTG(int var, int numberOfValues)
 {
     variable = var;
     numVal = numberOfValues;
-    transitions = new std::list<int>[numVal];
+    this->transitions = new std::list<int>[numVal];
 }
 
 void freeDTG::addTransition(int a, int b)
