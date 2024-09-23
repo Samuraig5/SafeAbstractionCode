@@ -4,12 +4,12 @@
 #include "domain_transition_graph.h"
 #include "freeDTG.h"
 
-void abstractor::find_safe_variables(std::shared_ptr<AbstractTask> orignial_task)
+void abstractor::find_safe_variables(std::shared_ptr<AbstractTask> original_task )
 {
   //Get the causal graph for the task
   const causal_graph &causal_graph = get_causal_graph(original_task.get());
 
-  //I need a TaskProxy but orignial_task is an AbstractTask.
+  //I need a TaskProxy but original_task is an AbstractTask.
   TaskProxy task_proxy(*tasks::g_root_task);
   //Should this be false or true?
   bool collect_side_effects = false;

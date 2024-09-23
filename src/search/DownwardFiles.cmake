@@ -81,6 +81,15 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+        NAME SAFE_ABSTRACTION
+        HELP "Safe Abstraction"
+        SOURCES
+            safe_abstraction/abstractor
+            safe_abstraction/freeDTG
+        CORE_PLUGIN
+)
+
+fast_downward_plugin(
     NAME PLUGINS
     HELP "Plugin definition"
     SOURCES

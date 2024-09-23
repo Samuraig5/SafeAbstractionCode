@@ -7,6 +7,7 @@
 #include "utils/logging.h"
 #include "utils/system.h"
 #include "utils/timer.h"
+#include "safe_abstraction/abstractor.h"
 
 #include <iostream>
 
@@ -42,6 +43,8 @@ int main(int argc, const char **argv) {
           below. The 'int' is just a placeholder for whatever data type we will
           need here in the end.
         */
+        abstractor::find_safe_variables(original_task);
+
         int info = 0;
         /*
           Remo: We need this cast because the constructor of SimplifiedTask
