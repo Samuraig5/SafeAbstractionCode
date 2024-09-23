@@ -2,6 +2,7 @@
 #include "AbstractTask.h"
 #include "causal_graph.h"
 #include "domain_transition_graph.h"
+#include "freeDTG.h"
 
 void abstractor::find_safe_variables(std::shared_ptr<AbstractTask> orignial_task)
 {
@@ -17,21 +18,22 @@ void abstractor::find_safe_variables(std::shared_ptr<AbstractTask> orignial_task
 
   //Get the DTGs for the task
   domain_transition_graph::DTGFactory dtg_factory(task_proxy, collect_side_effects, pruning_condition);
-  std::vector<std::unique_ptr<DomainTransitionGraph>> dtgs = dtg_factory.build_dtgs();
+  std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> dtgs = dtg_factory.build_dtgs();
 
-  std::vector<std::unique_ptr<DomainTransitionGraph>> free_dtgs = get_free_dtgs(dtgs);
+  std::vector<std::unique_ptr<freeDTG>> free_dtgs = get_free_dtgs(dtgs);
 }
 
-std::vector<std::unique_ptr<DomainTransitionGraph>> abstractor::get_free_domain_transition_graph(std::vector<std::unique_ptr<DomainTransitionGraph>> dtgs)
+std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_graph(
+    std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> dtgs)
 {
-	std::vector<std::unique_ptr<DomainTransitionGraph>> free_dtgs;
+	std::vector<std::unique_ptr<freeDTG>> free_dtgs;
 
 	for (const auto &dtg : dtgs)
 	{
-        //TODO: Create freeDTG object
+        freeDTG free_dtg(dtg.var, dtg.nodes.size());
+
         for (const auto &node : dtg->nodes)
 		{
-        	bool nodeHandled = false;
             for (const auto &transition : node.transitions)
 			{
                 bool is_free_transition = true;
@@ -63,11 +65,16 @@ std::vector<std::unique_ptr<DomainTransitionGraph>> abstractor::get_free_domain_
                 }
 
                 if (is_free_transition) {
-                    //TODO: Add free nodes and free transitions to freeDTG
+                    /*
+                    TODO: Make sure node.value (and target.value) doesn't break anything here or fix it.
+                    The idea should work but this implementation probably doesn't since values can be arbitrary but we
+                    have a limited range defined by free_dtg.numVal.
+                    */
+                    free_dtg.addTransition(node.value, transition.target.value);
                 }
             }
         }
-        //TODO: Add new freeDTG to free_dtgs
+        free_dtgs.push_back(free_dtg);
 	}
 
 	return free_dtgs;
