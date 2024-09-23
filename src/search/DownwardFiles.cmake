@@ -85,7 +85,7 @@ fast_downward_plugin(
         HELP "Safe Abstraction"
         SOURCES
             safe_abstraction/abstractor
-            safe_abstraction/freeDTG
+            safe_abstraction/free_domain_transition_graph
         CORE_PLUGIN
 )
 
