@@ -12,11 +12,6 @@ freeDTG::freeDTG(int var, int numberOfValues)
     this->externallyCausedValues = std::vector<bool>(numVal);
 }
 
-int freeDTG::getVariable()
-{
-    return variable;
-}
-
 void freeDTG::addTransition(int a, int b)
 {
     transitions[a].push_back(b); // Add b to a’s list. (Transtion from a to b)
@@ -33,6 +28,82 @@ void freeDTG::externallyCaused(int val)
     externallyCausedValues[val] = true;
     std::cout << " (Setting: " << val << " of " << variable << " to " << externallyCausedValues[val] << ") ";
 
+}
+
+/*
+Based on https://www.geeksforgeeks.org/connectivity-in-a-directed-graph/
+ */
+bool freeDTG::isStronglyConnected(std::list<int> targetValues)
+{
+    if (targetValues.size() == 0) {return true;}
+    std::vector<bool> visited(targetValues.size(), false);
+
+    freeDTG::DFS(targetValues.front(), &visited);
+
+    for (int i = 0; i < visited.size(); i++)
+    {
+        if (visited[i] == false)
+        {
+            for (int target : targetValues)
+            {
+                if (target == i)
+                {
+                    //If a target variable wasn't visited we already know its not strongly connected.
+                    std::cout << "freeDTG is not strongly connected: couldn't reach: " << i << " from: " << targetValues.front() << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    freeDTG inversion = freeDTG::getTranspose();
+
+    std::vector<bool> inversionVisited(targetValues.size(), false);
+
+    inversion.DFS(targetValues.front(), &inversionVisited);
+
+    for (int i = 0; i < inversionVisited.size(); i++)
+    {
+        if (inversionVisited[i] == false)
+        {
+            for (int target : targetValues)
+            {
+                if (target == i)
+                {
+                    std::cout << "freeDTG is not strongly connected: (inverted) couldn't reach: " << i << " from: " << targetValues.front() << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+void freeDTG::DFS(int v, std::vector<bool> *visited)
+{
+    (*visited)[v] = true;
+
+    for (int value : transitions[v])
+    {
+        if (!(*visited)[value])
+        {
+            DFS(value, visited);
+        }
+    }
+}
+
+freeDTG freeDTG::getTranspose()
+{
+    freeDTG inversion(variable, numVal);
+    for (int v = 0; v < numVal; v++)
+    {
+        for (int w : transitions[v])
+        {
+            inversion.addTransition(w, v);
+        }
+    }
+    return inversion;
 }
 
 void freeDTG::printFreeDTG()

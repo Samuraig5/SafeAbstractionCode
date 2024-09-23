@@ -14,10 +14,15 @@ class freeDTG
 
   public:
     freeDTG(int var, int numVal);
-    int getVariable();
+    int getVariable() {return variable;}
+    std::vector<bool> getExternallyRequiredValues() { return externallyRequiredValues; }
+    std::vector<bool> getExternallyCausedValues() {return externallyCausedValues;}
     void addTransition(int a, int b);
     void externallyRequired(int val);
     void externallyCaused(int val);
+    bool isStronglyConnected(std::list<int> targetValues);
+    void DFS(int v, std::vector<bool> *visited);
+    freeDTG getTranspose();
     void printFreeDTG();
     void printExternalInformation();
 };

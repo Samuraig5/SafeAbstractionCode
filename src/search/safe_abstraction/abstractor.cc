@@ -21,13 +21,30 @@ void abstractor::find_safe_variables(std::shared_ptr<AbstractTask> original_task
   domain_transition_graph::DTGFactory dtg_factory(task_proxy, collect_side_effects, pruning_condition);
   std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> dtgs = dtg_factory.build_dtgs();
 
+  std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
   std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(dtgs);
 
   for (const auto &free_dtgs : free_dtgs)
   {
   	free_dtgs->printFreeDTG();
     free_dtgs->printExternalInformation();
+
+  	std::list<int> externallyRequiredValues;
+  	for (int i = 0; i < free_dtgs->getExternallyRequiredValues().size(); ++i) {
+  		if (free_dtgs->getExternallyRequiredValues()[i]) {externallyRequiredValues.push_back(i);}
+  	}
+  	if (free_dtgs->isStronglyConnected(externallyRequiredValues))
+    {
+  		std::cout << "Externally required values of " << free_dtgs->getVariable() << " are strongly connected in the free DTG" << std::endl;
+    }
+    else
+    {
+    	std::cout << "Externally required values of " << free_dtgs->getVariable() << " are NOT strongly connected in the free DTG" << std::endl;
+    }
+
+    std::cout << std::endl;
   }
+  std::cout << "=======================================================================" << std::endl;
 }
 
 std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_graph(
