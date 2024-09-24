@@ -48,7 +48,6 @@ int main(int argc, const char **argv) {
         for (int val : safe_variables) {cout << val << ", ";}
         cout << endl;
 
-        int info = 0;
         /*
           Remo: We need this cast because the constructor of SimplifiedTask
           needs a RootTask as input, not an AbstractTask.
@@ -56,7 +55,7 @@ int main(int argc, const char **argv) {
         shared_ptr<tasks::RootTask> original_root_task =
             dynamic_pointer_cast<tasks::RootTask>(original_task);
         shared_ptr<tasks::SimplifiedTask> simplified_task =
-            make_shared<tasks::SimplifiedTask>(original_root_task, info);
+            make_shared<tasks::SimplifiedTask>(original_root_task, safe_variables);
         /*
           Remo: It seems that the parts of the code that need access to the task
           read it directly from the global g_root_task variable. We set it to

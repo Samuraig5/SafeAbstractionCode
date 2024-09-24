@@ -3,6 +3,7 @@
 #include "../task_utils/causal_graph.h"
 #include "../heuristics/domain_transition_graph.h"
 #include "free_domain_transition_graph.h"
+#include "../tasks/root_task.h"
 
 std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> original_task )
 {
@@ -42,6 +43,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
   for (const auto &free_dtg : free_dtgs)
   {
+    // > Check for Strong Connectedness of externally required values
   	std::list<int> externallyRequiredValues;
   	//Convert bool list into a list of ints
   	for (int i = 0; i < free_dtg->getExternallyRequiredValues().size(); ++i) {
@@ -49,7 +51,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   	}
     bool extReqValAreStronglyConnected = free_dtg->isStronglyConnected(externallyRequiredValues);
 
-
+	// > Check for Reachability of externally required values from externally caused values
   	std::list<int> externallyCausedValues;
   	//Convert bool list into a list of ints
   	for (int i = 0; i < free_dtg->getExternallyCausedValues().size(); ++i) {
@@ -63,17 +65,44 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
     	if (!free_dtg->isReachable(extCausedVal, externallyRequiredValues))
         {
         	allReqReachableByCaused = false;
-                break;
+            break;
+        }
+    }
+
+    // > Check for Reachability of goal value from externally required values
+    int goalValue;
+    GoalsProxy goals = task_proxy.get_goals();
+
+    for (int i = 0; i < goals.size(); ++i) //Is there a better way to do this?
+    {
+    	FactProxy goalFact = goals[i];
+    	if (goalFact.get_variable().get_id() == free_dtg->getVariable())
+    	{
+    		goalValue = goalFact.get_value();
+    	}
+    }
+
+    bool goalReachableByRequired = true;
+    //Check if goal value is reachable from the externally required values
+    for (int extReqVal : externallyRequiredValues)
+    {
+     	//Since the externally req val would have to be stronly connected,
+     	// being reachable from any ext.req.val should be sufficient to proof this property.
+    	if (!free_dtg->isReachable(extReqVal, { goalValue }))
+        {
+        	goalReachableByRequired = false;
+            break;
         }
     }
 
 	//Print results
     free_dtg->printFreeDTG();
     free_dtg->printExternalInformation();
-    printResults(extReqValAreStronglyConnected, allReqReachableByCaused, free_dtg.get());
+    printResults(extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
+    std::cout << "Goal State: " << goalValue << std::endl;
 
   	std::cout << std::endl;
-    if (extReqValAreStronglyConnected && allReqReachableByCaused) //TODO: Check if goal value is free reachable from all externally required values
+    if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachableByRequired) //TODO: Check if goal value is free reachable from all externally required values
     {
     	safe_variables.push_back(free_dtg->getVariable());
     }
@@ -182,7 +211,7 @@ freeDTG* abstractor::find_freeDTG_by_variable(
 	return nullptr;
 }
 
-void abstractor::printResults(bool extReqValAreStronglyConnected, bool allReqReachableByCaused, freeDTG *free_dtg)
+void abstractor::printResults(bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg)
 {
   	if (extReqValAreStronglyConnected)
     {
@@ -200,5 +229,14 @@ void abstractor::printResults(bool extReqValAreStronglyConnected, bool allReqRea
   	else
   	{
   		std::cout << "Externally required values of " << free_dtg->getVariable() << " are NOT reachable by externally caused values" << std::endl;
+  	}
+
+  	if (goalReachableByRequired)
+  	{
+  		std::cout << "Goal value of variable " << free_dtg->getVariable() << " is reachable from externally required values" << std::endl;
+  	}
+  	else
+  	{
+  		std::cout << "Goal value of variable " << free_dtg->getVariable() << " is NOT reachable from externally required values" << std::endl;
   	}
 }

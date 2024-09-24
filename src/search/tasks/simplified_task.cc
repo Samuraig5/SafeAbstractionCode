@@ -2,7 +2,7 @@
 
 namespace tasks {
 
-SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, int /* TODO */) : RootTask(*parent) {
+SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int> safeVariables) : RootTask(*parent) {
     /*
         Remo: Create the simplified, i.e. the safely abstracted, task here by
         modifying the vectors listed below (inherited from RootTask):
