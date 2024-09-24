@@ -20,14 +20,13 @@ void freeDTG::addTransition(int a, int b)
 void freeDTG::externallyRequired(int val)
 {
     externallyRequiredValues[val] = true;
-    std::cout << " (Setting: " << val << " of " << variable << " to " << externallyRequiredValues[val] << ") ";
+    //std::cout << " (Setting: " << val << " of " << variable << " to " << externallyRequiredValues[val] << ") ";
 }
 
 void freeDTG::externallyCaused(int val)
 {
     externallyCausedValues[val] = true;
-    std::cout << " (Setting: " << val << " of " << variable << " to " << externallyCausedValues[val] << ") ";
-
+    //std::cout << " (Setting: " << val << " of " << variable << " to " << externallyCausedValues[val] << ") ";
 }
 
 /*
