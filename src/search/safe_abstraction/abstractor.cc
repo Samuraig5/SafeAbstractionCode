@@ -70,6 +70,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
     }
 
     // > Check for Reachability of goal value from externally required values
+    bool hasGoal = false;
     int goalValue;
     GoalsProxy goals = task_proxy.get_goals();
 
@@ -79,27 +80,33 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
     	if (goalFact.get_variable().get_id() == free_dtg->getVariable())
     	{
     		goalValue = goalFact.get_value();
+    		hasGoal = true;
+    		break;
     	}
     }
 
     bool goalReachableByRequired = true;
-    //Check if goal value is reachable from the externally required values
-    for (int extReqVal : externallyRequiredValues)
+    if (hasGoal)
     {
-     	//Since the externally req val would have to be stronly connected,
-     	// being reachable from any ext.req.val should be sufficient to proof this property.
-    	if (!free_dtg->isReachable(extReqVal, { goalValue }))
+        //Check if goal value is reachable from the externally required values
+        for (int extReqVal : externallyRequiredValues)
         {
-        	goalReachableByRequired = false;
-            break;
+     	    //Since the externally req val would have to be stronly connected,
+     	    // being reachable from any ext.req.val should be sufficient to proof this property.
+    	    if (!free_dtg->isReachable(extReqVal, { goalValue }))
+            {
+        	    goalReachableByRequired = false;
+                break;
+            }
         }
     }
+
 
 	//Print results
     free_dtg->printFreeDTG();
     free_dtg->printExternalInformation();
     printResults(extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
-    std::cout << "Goal State: " << goalValue << std::endl;
+    if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
 
   	std::cout << std::endl;
     if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachableByRequired) //TODO: Check if goal value is free reachable from all externally required values
@@ -124,13 +131,13 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
     for (auto &dtg : dtgs)
     {
         int var_id = dtg->get_var();
-        std::cout << "Working on DTG of variable: " << var_id << std::endl;
+        std::cout << "variable: " << var_id << std::endl;
         //Get the free_dtg with the same variable as the dtg being worked on
         freeDTG free_dtg = *find_freeDTG_by_variable(free_dtgs, var_id);
 
         for (auto &node : dtg->get_nodes())
 		{
-        	std::cout << "  node: " << node.value << std::endl;
+        	std::cout << "  value: " << node.value << std::endl;
             for (auto &transition : node.transitions)
 			{
             	std::cout << "    transition: " << node.value << "->" << transition.target->value << std::endl;
@@ -139,11 +146,11 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                 // Check preconditions and effects
                 for (auto &label : transition.labels)
 				{
-                  	std::cout << "      num of precons: " << label.precond.size() << std::endl;
-                	std::cout << "      precon: ";
+				    std::cout << "      transition label: " << label.op_id << std::endl;
+                  	std::cout << "        num of precons: " << label.precond.size() << std::endl;
+                	std::cout << "        precon: ";
                 	for (auto &precon : label.precond)
                     {
-                		std::cout << precon.local_var << " = " << precon.value;
                 		/*
                 		If the precon has a diffrent variable then the variable of the DTG then we know that the
                 		transition should not be included in the free DTG.
@@ -156,18 +163,18 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                        		 */
                         	find_freeDTG_by_variable(free_dtgs, precon.local_var)->externallyRequired(precon.value);
 
-                        	std::cout << "(<-precon on var: " << precon.local_var << "!)";;
+                        	std::cout << "[" << precon.local_var << " = " << precon.value << "]";
                         	is_free_transition = false;
                         }
+                        else { std::cout << precon.local_var << " = " << precon.value; }
                 		std::cout << ", " ;
                     }
                     std::cout << std::endl;
 
-                	std::cout << "      num of postcons: " << label.effect.size() << std::endl;
-                	std::cout << "      postcon: ";
+                	std::cout << "        num of postcons: " << label.effect.size() << std::endl;
+                	std::cout << "        postcon: ";
                 	for (auto &postcon : label.effect)
                 	{
-                		std::cout << postcon.local_var << " = " << postcon.value;
                 		//Same logic as with the precons
                 		if (var_id != postcon.local_var)
                 		{
@@ -177,13 +184,13 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                        		 */
                 			find_freeDTG_by_variable(free_dtgs, postcon.local_var)->externallyCaused(postcon.value);
 
-                			std::cout << "(<- postcon on var: " << postcon.local_var << "!)";
+                			std::cout << "[" << postcon.local_var << " = " << postcon.value << "]";
                 			is_free_transition = false;
                 		}
+                		else { std::cout << postcon.local_var << " = " << postcon.value; }
                 		std::cout << ", " ;
                 	}
                 	std::cout << std::endl;
-                    std::cout << "    Is this transition free?: " << is_free_transition << std::endl;
                 }
 
                 if (is_free_transition) {
@@ -192,7 +199,8 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                     add it to the free DTG.
                      */
                     free_dtg.addTransition(node.value, transition.target->value);
-                }
+                    std::cout << "      Transition is free" << std::endl;
+                } else { std::cout << "      Transition is NOT free" << std::endl; }
             }
         }
     	std::cout << std::endl;

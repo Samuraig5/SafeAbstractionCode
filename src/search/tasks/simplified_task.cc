@@ -13,6 +13,27 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
         vector<int> initial_state_values;
         vector<FactPair> goals;
     */
-}
 
+    std::list<ExplicitVariable> variablesToAbstract;
+    std::list<FactPair> goalsToAbstract;
+    for (int safeVarID : safeVariables) {
+        variablesToAbstract.push_back(get_variable(safeVarID));
+
+        for (FactPair goal : goals) {
+            if (goal.var == safeVarID) {goalsToAbstract.push_back(goal);}
+        }
+    }
+
+
+
+
+
+
+    for (ExplicitVariable var : variablesToAbstract){
+        cout << var.name << endl;
+    }
+    for (FactPair goal : goalsToAbstract){
+        cout << goal.var << ": " << goal.value << endl;
+    }
+}
 }
