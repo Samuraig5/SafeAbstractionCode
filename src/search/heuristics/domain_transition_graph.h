@@ -124,17 +124,18 @@ class DomainTransitionGraph {
 
     int last_helpful_transition_extraction_time;
 
-    std::vector<int> local_to_global_child;
-    // used for mapping variables in conditions to their global index
-    // (only needed for initializing child_state for the start node?)
-
     DomainTransitionGraph(const DomainTransitionGraph &other); // copying forbidden
 public:
     DomainTransitionGraph(int var_index, int node_count);
 
-    //Very hacky way to get data needed for safe abstraction
+    //Very hacky way to get data needed for safe abstraction (was previously private)
     int get_var() const { return var; }
     std::vector<ValueNode> get_nodes() const { return nodes; }
+
+    //Need this to convert label local_var to global var (was previously private)
+    std::vector<int> local_to_global_child;
+    // used for mapping variables in conditions to their global index
+    // (only needed for initializing child_state for the start node?)
 };
 }
 
