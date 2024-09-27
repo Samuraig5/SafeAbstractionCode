@@ -14,8 +14,11 @@ namespace tasks {
 class SimplifiedTask : public RootTask {
 private:
     void removeVariables(std::list<int> safeVarID);
+    void removeMutexes(std::list<int> safeVarID);
     void removeOperators(std::list<int> safeVarID);
+    void removeInitialValues(std::list<int> safeVarID);
     void removeGoals(std::list<int> safeVarID);
+    void print_variables();
     void print_mutexes();
     void print_operators();
 

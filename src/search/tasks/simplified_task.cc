@@ -16,12 +16,15 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
         vector<FactPair> goals;
     */
 
+    //print_variables();
     //print_mutexes();
     //print_operators();
+    axioms.clear();
     //removeVariables(safeVariables); // <- Breaks the search (I think stuff like removing mutexes & inital_states must be implemented first)
+    removeMutexes(safeVariables);
     removeOperators(safeVariables);
+    removeInitialValues(safeVariables);
     removeGoals(safeVariables);
-    print_operators();
 }
 
 void SimplifiedTask::removeVariables(std::list<int> safeVarID)
@@ -45,6 +48,17 @@ void SimplifiedTask::removeVariables(std::list<int> safeVarID)
             }
         }
     }
+}
+
+void SimplifiedTask::removeMutexes(std::list<int> safeVarID)
+{
+    for (int safeVarID : safeVarID) {
+        cout << "Clearing Mutexes for: " << safeVarID << std::endl;
+        for (set<FactPair> mutexSet : mutexes[safeVarID])
+        {
+            mutexSet.clear();
+        }
+     }
 }
 
 void SimplifiedTask::removeOperators(std::list<int> safeVarID)
@@ -100,8 +114,7 @@ void SimplifiedTask::removeOperators(std::list<int> safeVarID)
             for (int var : safeVarID){
                 for (int j = 0; j < operators[i].preconditions.size(); j++) {
                     if (var == operators[i].preconditions[j].var){
-                        cout << operators[i].name << ": Removing precondition: " << operators[i].preconditions[j].var
-                             << " = " << operators[i].preconditions[j].value << std::endl;
+                        //cout << operators[i].name << ": Removing precondition: " << operators[i].preconditions[j].var << " = " << operators[i].preconditions[j].value << std::endl;
 
                         all_is_clean = false;
                         operators[i].preconditions.erase(operators[i].preconditions.begin() + j);
@@ -112,8 +125,7 @@ void SimplifiedTask::removeOperators(std::list<int> safeVarID)
             for (int var : safeVarID){
                 for (int j = 0; j < operators[i].effects.size(); j++){ //(const ExplicitEffect& postcon : op.effects){
                     if (var == operators[i].effects[j].fact.var){
-                        cout << operators[i].name << ": Removing postcondition: " << operators[i].effects[j].fact.var
-                           << " = " << operators[i].effects[j].fact.value << std::endl;
+                        //cout << operators[i].name << ": Removing postcondition: " << operators[i].effects[j].fact.var << " = " << operators[i].effects[j].fact.value << std::endl;
 
                         all_is_clean = false;
                         operators[i].effects.erase(operators[i].effects.begin() + j);
@@ -124,6 +136,22 @@ void SimplifiedTask::removeOperators(std::list<int> safeVarID)
         }
         while (!all_is_clean);
     }
+}
+
+void SimplifiedTask::removeInitialValues(std::list<int> safeVarID)
+{
+    /*
+    Technically we don't have to do anything here since each variable will inherently only access their own initial value.
+    If we removed a value (and shortened the vector) we'd have to change the ID for each variable.
+    Including its apperances in all operations, precons, postcons, mutextes, goals, ect.
+    I feel that will bring in far more complexity and error risk than any "good" it would do.
+     */
+    /*
+    for (int safeVarID : safeVarID) {
+        cout << "Removing initial state: " << initial_state_values[safeVarID] << " for: " << safeVarID << std::endl;
+        initial_state_values.erase(initial_state_values.begin() + safeVarID);
+    }
+     */
 }
 
 void SimplifiedTask::removeGoals(std::list<int> safeVarID)
@@ -144,6 +172,16 @@ void SimplifiedTask::removeGoals(std::list<int> safeVarID)
             cout << "Removing goal: " << goal.var << " = " << goal.value << std::endl;
         }
     }
+}
+
+void SimplifiedTask::print_variables()
+{
+    cout << "Variables: ";
+    for (auto variable : variables)
+    {
+        cout << variable.name << ", ";
+    }
+    cout << std::endl;
 }
 
 void SimplifiedTask::print_mutexes()
