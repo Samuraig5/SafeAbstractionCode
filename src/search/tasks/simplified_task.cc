@@ -5,6 +5,7 @@
 namespace tasks {
 
 SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int> safeVariables) : RootTask(*parent) {
+  if (safeVariables.empty()) {return;}
     /*
         Remo: Create the simplified, i.e. the safely abstracted, task here by
         modifying the vectors listed below (inherited from RootTask):
@@ -46,7 +47,7 @@ void SimplifiedTask::removeVariables(std::list<int> safeVarID)
         {
             if (safe_var == variables[i].name)
             {
-                cout << "Removing variable: " << safe_var << std::endl;
+                //cout << "Removing variable: " << safe_var << std::endl;
                 variables.erase(variables.begin() + i);
                 break;
             }
@@ -90,7 +91,7 @@ void SimplifiedTask::removeOperators(std::list<int> safeVarID)
         {
             if (safe_op == operators[i].name)
             {
-                cout << "Removing operation: " << safe_op << std::endl;
+                //cout << "Removing operation: " << safe_op << std::endl;
                 operators.erase(operators.begin() + i);
                 break;
             }
@@ -146,7 +147,7 @@ void SimplifiedTask::removeGoals(std::list<int> safeVarID)
 
         if (index != goals.end()) {
             goals.erase(index);
-            cout << "Removing goal: " << goal.var << " = " << goal.value << std::endl;
+            //cout << "Removing goal: " << goal.var << " = " << goal.value << std::endl;
         }
     }
 }
