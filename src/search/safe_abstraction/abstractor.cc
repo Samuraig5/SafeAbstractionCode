@@ -39,7 +39,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   Calls the main function of abstractor to calculate the free domain transition graphs.
   At the same time it collects information about which values per variable are externally required and externally caused.
    */
-  std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(dtgs);
+  std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(original_task, dtgs);
 
   for (const auto &free_dtg : free_dtgs)
   {
@@ -103,9 +103,9 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
 
 	//Print results
-    free_dtg->printFreeDTG();
-    free_dtg->printExternalInformation();
-    printResults(extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
+    free_dtg->printFreeDTG(original_task);
+    free_dtg->printExternalInformation(original_task);
+    printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
     if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
 
   	std::cout << std::endl;
@@ -119,6 +119,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 }
 
 std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_graph(
+    std::shared_ptr<AbstractTask> original_task,
     std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> &dtgs)
 {
     //Create the (empty) free DTGs
@@ -132,8 +133,9 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
     {
         int var_id = dtg->get_var();
         const vector<int> &loc_to_glob = dtg->local_to_global_child;
+    	string var_name = original_task->get_variable_name(var_id);
 
-        std::cout << "variable: " << var_id << std::endl;
+        std::cout << "variable: " << var_name << std::endl;
         //Get the free_dtg with the same variable as the dtg being worked on
         freeDTG free_dtg = *find_freeDTG_by_variable(free_dtgs, var_id);
 
@@ -142,7 +144,8 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
         	std::cout << "  value: " << node.value << std::endl;
             for (auto &transition : node.transitions)
 			{
-            	std::cout << "    transition: " << var_id << "=" << node.value << "->" << transition.target->parent_graph->get_var() << "=" << transition.target->value << std::endl;
+            	std::cout << "    transition: " << var_name << " = " << node.value << " -> "
+                        << original_task->get_variable_name(transition.target->parent_graph->get_var()) << " = " << transition.target->value << std::endl;
                 bool is_transition_free = false;
 
                 // Check preconditions and effects
@@ -153,13 +156,13 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
 				    //std::cout << "      transition label: " << label.op_id << std::endl;
                   	std::cout << "        num of external precons: " << label.precond.size() << std::endl;
                 	std::cout << "        precon: ";
-                	std::cout << var_id << " = " << node.value<< ", ";
+                	std::cout << var_name << " = " << node.value<< ", ";
                 	for (auto &precon : label.precond)
                     {
                         //int label_var = precon.local_var;
                         int label_var =  loc_to_glob[precon.local_var];
                         int label_val = precon.value;
-                		std::cout << "[" << label_var << " = " << label_val << "], ";
+                		std::cout << "[" << original_task->get_variable_name(transition.target->parent_graph->get_var()) << " = " << label_val << "], ";
                 		/*
                 		If the precon has a diffrent variable then the variable of the DTG then we know that the
                 		transition should not be included in the free DTG.
@@ -179,13 +182,13 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                     bool are_postcons_free = true;
                 	std::cout << "        num of external postcons: " << label.effect.size() << std::endl;
                 	std::cout << "        postcon: ";
-                	std::cout << transition.target->parent_graph->get_var() << " = " << transition.target->value << ", ";
+                	std::cout << original_task->get_variable_name(transition.target->parent_graph->get_var()) << " = " << transition.target->value << ", ";
                 	for (auto &postcon : label.effect)
                 	{
                         //int label_var = postcon.local_var;
                         int label_var = loc_to_glob[postcon.local_var];
                         int label_val = postcon.value;
-                		std::cout << "[" << label_var << " = " << label_val << "], ";
+                		std::cout << "[" <<  original_task->get_variable_name(label_var) << " = " << label_val << "], ";
                         //Same logic as with the precons
                 		if (var_id != label_var)
                 		{
@@ -228,32 +231,32 @@ freeDTG* abstractor::find_freeDTG_by_variable(
 	return nullptr;
 }
 
-void abstractor::printResults(bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg)
+void abstractor::printResults(std::shared_ptr<AbstractTask> original_task, bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg)
 {
   	if (extReqValAreStronglyConnected)
     {
-  		std::cout << "Externally required values of " << free_dtg->getVariable() << " are strongly connected in the free DTG" << std::endl;
+  		std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are strongly connected in the free DTG" << std::endl;
     }
     else
     {
-    	std::cout << "Externally required values of " << free_dtg->getVariable() << " are NOT strongly connected in the free DTG" << std::endl;
+    	std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are NOT strongly connected in the free DTG" << std::endl;
     }
 
     if (allReqReachableByCaused)
   	{
-  		std::cout << "Externally required values of " << free_dtg->getVariable() << " are reachable by externally caused values" << std::endl;
+  		std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are reachable by externally caused values" << std::endl;
   	}
   	else
   	{
-  		std::cout << "Externally required values of " << free_dtg->getVariable() << " are NOT reachable by externally caused values" << std::endl;
+  		std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are NOT reachable by externally caused values" << std::endl;
   	}
 
   	if (goalReachableByRequired)
   	{
-  		std::cout << "Goal value of variable " << free_dtg->getVariable() << " is reachable from externally required values" << std::endl;
+  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is reachable from externally required values" << std::endl;
   	}
   	else
   	{
-  		std::cout << "Goal value of variable " << free_dtg->getVariable() << " is NOT reachable from externally required values" << std::endl;
+  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is NOT reachable from externally required values" << std::endl;
   	}
 }

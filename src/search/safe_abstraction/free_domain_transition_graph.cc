@@ -1,4 +1,5 @@
 #include "free_domain_transition_graph.h"
+#include "../abstract_task.h"
 #include <list>
 #include <vector>
 #include <iostream>
@@ -114,9 +115,9 @@ bool freeDTG::isReachable(int startingValue, std::list<int> targetValues)
 }
 
 
-void freeDTG::printFreeDTG()
+void freeDTG::printFreeDTG(std::shared_ptr<AbstractTask> original_task)
 {
-    std::cout << "safe_abstraction > FreeDTG of variable: " << variable << std::endl;
+    std::cout << "safe_abstraction > FreeDTG of variable: " << original_task->get_variable_name(variable) << std::endl;
     for (int i = 0; i < numVal; ++i) {
         std::cout << "  Transitions for value " << i << ": [ ";
         for (int value : transitions[i]) {
@@ -127,9 +128,9 @@ void freeDTG::printFreeDTG()
     std::cout << std::endl;
 }
 
-void freeDTG::printExternalInformation()
+void freeDTG::printExternalInformation(std::shared_ptr<AbstractTask> original_task)
 {
-    std::cout << "safe_abstraction > External information of variable: " << variable << std::endl;
+    std::cout << "safe_abstraction > External information of variable: " << original_task->get_variable_name(variable) << std::endl;
     for (int i = 0; i < numVal; ++i) {
         std::cout << "Value " << i << " is:" << std::endl;
         if (externallyRequiredValues[i]) {std::cout << "    Externally required" << std::endl;}

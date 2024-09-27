@@ -1,6 +1,7 @@
 #ifndef FREE_DOMAIN_TRANSITION_GRAPH_H
 #define FREE_DOMAIN_TRANSITION_GRAPH_H
 
+#include "../abstract_task.h"
 #include <list>
 #include <vector>
 
@@ -24,7 +25,7 @@ class freeDTG
     void DFS(int value, std::vector<bool> *visited);
     freeDTG getTranspose();
     bool isReachable(int value, std::list<int> targetValues);
-    void printFreeDTG();
-    void printExternalInformation();
+    void printFreeDTG(std::shared_ptr<AbstractTask> original_task);
+    void printExternalInformation(std::shared_ptr<AbstractTask> original_task);
 };
 #endif //FREE_DOMAIN_TRANSITION_GRAPH_H
