@@ -12,6 +12,13 @@ using namespace std;
 namespace tasks {
 
 class SimplifiedTask : public RootTask {
+private:
+    void removeVariables(std::list<int> safeVarID);
+    void removeOperators(std::list<int> safeVarID);
+    void removeGoals(std::list<int> safeVarID);
+    void print_mutexes();
+    void print_operators();
+
 public:
     SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int> safeVariables);
 };

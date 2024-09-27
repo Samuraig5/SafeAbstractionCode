@@ -44,9 +44,6 @@ int main(int argc, const char **argv) {
           need here in the end.
         */
         std::list<int> safe_variables = abstractor::find_safe_variables(original_task);
-        cout << "Safe Variables: " << endl;
-        for (int val : safe_variables) {cout << val << ", ";}
-        cout << endl;
 
         /*
           Remo: We need this cast because the constructor of SimplifiedTask
