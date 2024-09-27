@@ -86,6 +86,7 @@ fast_downward_plugin(
         SOURCES
             safe_abstraction/abstractor
             safe_abstraction/free_domain_transition_graph
+            safe_abstraction/variableAdjuster
         CORE_PLUGIN
 )
 

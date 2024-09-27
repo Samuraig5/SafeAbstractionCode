@@ -19,12 +19,16 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
     //print_variables();
     //print_mutexes();
     //print_operators();
-    axioms.clear();
-    //removeVariables(safeVariables); // <- Breaks the search (I think stuff like removing mutexes & inital_states must be implemented first)
-    removeMutexes(safeVariables);
+
+    //axioms.clear();
     removeOperators(safeVariables);
-    removeInitialValues(safeVariables);
     removeGoals(safeVariables);
+    resizeVariableIDs(safeVariables);
+    removeVariables(safeVariables);
+
+    //print_variables();
+    //print_mutexes();
+    //print_operators();
 }
 
 void SimplifiedTask::removeVariables(std::list<int> safeVarID)
@@ -48,17 +52,6 @@ void SimplifiedTask::removeVariables(std::list<int> safeVarID)
             }
         }
     }
-}
-
-void SimplifiedTask::removeMutexes(std::list<int> safeVarID)
-{
-    for (int safeVarID : safeVarID) {
-        cout << "Clearing Mutexes for: " << safeVarID << std::endl;
-        for (set<FactPair> mutexSet : mutexes[safeVarID])
-        {
-            mutexSet.clear();
-        }
-     }
 }
 
 void SimplifiedTask::removeOperators(std::list<int> safeVarID)
@@ -138,22 +131,6 @@ void SimplifiedTask::removeOperators(std::list<int> safeVarID)
     }
 }
 
-void SimplifiedTask::removeInitialValues(std::list<int> safeVarID)
-{
-    /*
-    Technically we don't have to do anything here since each variable will inherently only access their own initial value.
-    If we removed a value (and shortened the vector) we'd have to change the ID for each variable.
-    Including its apperances in all operations, precons, postcons, mutextes, goals, ect.
-    I feel that will bring in far more complexity and error risk than any "good" it would do.
-     */
-    /*
-    for (int safeVarID : safeVarID) {
-        cout << "Removing initial state: " << initial_state_values[safeVarID] << " for: " << safeVarID << std::endl;
-        initial_state_values.erase(initial_state_values.begin() + safeVarID);
-    }
-     */
-}
-
 void SimplifiedTask::removeGoals(std::list<int> safeVarID)
 {
     std::list<FactPair> safeGoals;
@@ -171,6 +148,29 @@ void SimplifiedTask::removeGoals(std::list<int> safeVarID)
             goals.erase(index);
             cout << "Removing goal: " << goal.var << " = " << goal.value << std::endl;
         }
+    }
+}
+
+void SimplifiedTask::resizeVariableIDs(std::list<int> safeVarID)
+{
+    int offset = 0;
+    safeVarID.sort();
+    for (int target : safeVarID) {
+        target = target - offset;//This "moves" safeVarIDs as the list is shifted
+
+        //Starting from the next higher variable (If we remove variable 3, we want to reduce all variables 4,5,6,... by one)
+        for (int i = target+1; i < (int)variables.size(); i++) {
+            variableAdjuster::adjustOperators(i, operators);
+            variableAdjuster::adjustInitialValues(i,  initial_state_values);
+            variableAdjuster::adjustGoals(i,  goals);
+            variableAdjuster::adjustMutexIndex(i,  mutexes);
+            variableAdjuster::adjustMutexContent(i,  mutexes);
+            //variableAdjuster::adjustVariables(i, variables);
+        }
+
+        initial_state_values.pop_back(); //Removing last (now unused) slot
+        mutexes.pop_back();
+        offset++;
     }
 }
 
