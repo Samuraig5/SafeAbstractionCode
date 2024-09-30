@@ -32,7 +32,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> dtgs = dtg_factory.build_dtgs();
 
   std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
-  for (auto &dtg : dtgs) { abstractor::printDTG(original_task, dtg); }
+  //for (auto &dtg : dtgs) { abstractor::printDTG(original_task, dtg); }
 
   std::list<int> safe_variables;
 
@@ -105,11 +105,12 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
 
 	//Print results
-    free_dtg->printFreeDTG(original_task);
-    free_dtg->printExternalInformation(original_task);
-    printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
-    if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
-  	std::cout << std::endl;
+    //free_dtg->printFreeDTG(original_task);
+    //free_dtg->printExternalInformation(original_task);
+    //printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
+    //if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
+  	//std::cout << std::endl;
+
     if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachableByRequired) //TODO: Check if goal value is free reachable from all externally required values
     {
     	safe_variables.push_back(free_dtg->getVariable());

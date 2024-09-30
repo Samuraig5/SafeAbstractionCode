@@ -21,6 +21,7 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
     //print_mutexes();
     //print_operators();
 
+    cout << "Abstracting safeVariables" << endl;
     //axioms.clear();
     removeOperators(safeVariables);
     removeGoals(safeVariables);
@@ -166,7 +167,6 @@ void SimplifiedTask::resizeVariableIDs(std::list<int> safeVarID)
             variableAdjuster::adjustGoals(i,  goals);
             variableAdjuster::adjustMutexIndex(i,  mutexes);
             variableAdjuster::adjustMutexContent(i,  mutexes);
-            //variableAdjuster::adjustVariables(i, variables);
         }
 
         initial_state_values.pop_back(); //Removing last (now unused) slot
@@ -193,9 +193,9 @@ void SimplifiedTask::print_mutexes()
         std::cout << get_variable_name(i) << std::endl;
         for (int j = 0; j < (int)mutexes[i].size(); j++)
         {
-            std::cout << "|    " << j << std::endl;
+            std::cout << "|    " << "= " << j << std::endl;
             for (const FactPair& fact : mutexes[i][j]) {
-                std::cout << "|    |    (" << get_variable_name(fact.var) << " = " << fact.value << ")" << std::endl;
+                std::cout << "|    | (" << get_variable_name(fact.var) << " = " << fact.value << ")" << std::endl;
             }
         }
     }
@@ -205,20 +205,21 @@ void SimplifiedTask::print_operators()
 {
     std::cout << "> OPERATORS" << std::endl;
     for (const ExplicitOperator& op : operators) {
-        std::cout << op.name << std::endl << "precons: ";
+        std::cout << op.name << std::endl << "    precons: ";
         for (const FactPair& precon : op.preconditions)
         {
-            std::cout << precon.var << " = " << precon.value << ", ";
+            std::cout << get_variable_name(precon.var) << " = " << precon.value << ", ";
         }
         std::cout << std::endl;
 
-        std::cout << "postcon: ";
+        std::cout << "    postcon: ";
         for (const ExplicitEffect& postcon : op.effects)
         {
-            std::cout << postcon.fact.var << " = " << postcon.fact.value << ", ";
+            std::cout << get_variable_name(postcon.fact.var) << " = " << postcon.fact.value << ", ";
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 }
 
 }

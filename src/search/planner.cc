@@ -52,7 +52,7 @@ int main(int argc, const char **argv) {
             {
                 foundSafeVariables = true;
                 cout << "> Found safe variable: ";
-                for (int safe_variable : safe_variables) {cout << safe_variable << ", ";}
+                for (int safe_variable : safe_variables) {cout << original_task->get_variable_name(safe_variable) << ", ";}
                 cout << endl;
             }
             else {cout << "> No safe variables found!" << endl;}
