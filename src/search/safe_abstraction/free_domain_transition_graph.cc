@@ -39,8 +39,7 @@ Note that they may travel via non-target values to reach eachother.
 bool freeDTG::isStronglyConnected(std::list<int> targetValues)
 {
 	//Trivial case. Not sure if true or false should be returned
-	//If true is returned then variables with an empty free DTF would be counted as "safe" to abstract
-    if (targetValues.size() == 0) {return false;}
+    if (targetValues.size() == 0) {return true;}
 
     //Check if all targetValues are reachable from the first target value v
     if (!freeDTG::isReachable(targetValues.front(), targetValues)){return false;}

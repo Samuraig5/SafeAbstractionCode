@@ -51,10 +51,11 @@ int main(int argc, const char **argv) {
             if (!safe_variables.empty())
             {
                 foundSafeVariables = true;
-                cout << "found safe variable: ";
+                cout << "> Found safe variable: ";
                 for (int safe_variable : safe_variables) {cout << safe_variable << ", ";}
                 cout << endl;
             }
+            else {cout << "> No safe variables found!" << endl;}
 
             /*
               Remo: We need this cast because the constructor of SimplifiedTask

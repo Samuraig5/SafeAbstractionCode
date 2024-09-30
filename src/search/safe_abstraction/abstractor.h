@@ -11,10 +11,10 @@ class abstractor {
     static std::vector<std::unique_ptr<freeDTG>> get_free_domain_transition_graph(
     	std::shared_ptr<AbstractTask> original_task,
     	std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> &dtgs);
-    static void printResults(std::shared_ptr<AbstractTask> original_task, bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg);
     static freeDTG* find_freeDTG_by_variable(
         std::vector<std::unique_ptr<freeDTG>> &free_dtgs, int i);
-
+    static void printResults(std::shared_ptr<AbstractTask> original_task, bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg);
+    static void printDTG(std::shared_ptr<AbstractTask> original_task, std::unique_ptr<domain_transition_graph::DomainTransitionGraph> &dtg);
 
 
   public:
