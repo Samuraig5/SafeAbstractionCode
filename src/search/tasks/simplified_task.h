@@ -20,7 +20,8 @@ private:
     void resizeVariableIDs(std::list<int> safeVarID);
     void print_variables();
     void print_mutexes();
-    void print_operators();
+    void print_operators(bool detailed = false);
+    void print_problem();
 
 public:
     SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int> safeVariables);

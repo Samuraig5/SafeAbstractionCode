@@ -17,9 +17,11 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
         vector<FactPair> goals;
     */
 
+    //print_problem();
+
     //print_variables();
     //print_mutexes();
-    //print_operators();
+    print_operators();
 
     cout << "Abstracting safeVariables" << endl;
     //axioms.clear();
@@ -201,25 +203,43 @@ void SimplifiedTask::print_mutexes()
     }
 }
 
-void SimplifiedTask::print_operators()
+void SimplifiedTask::print_operators(bool detailed)
 {
     std::cout << "> OPERATORS" << std::endl;
     for (const ExplicitOperator& op : operators) {
         std::cout << op.name << std::endl << "    precons: ";
         for (const FactPair& precon : op.preconditions)
         {
-            std::cout << get_variable_name(precon.var) << " = " << precon.value << ", ";
+        	auto variable = precon.var;
+        	if (detailed) {std::cout << get_variable_name(variable) << " = " << get_variable(variable).fact_names[precon.value] << ", ";}
+        	else {std::cout << get_variable_name(variable) << " = " << precon.value << ", ";}
         }
         std::cout << std::endl;
 
         std::cout << "    postcon: ";
         for (const ExplicitEffect& postcon : op.effects)
         {
-            std::cout << get_variable_name(postcon.fact.var) << " = " << postcon.fact.value << ", ";
+            auto variable = postcon.fact.var;
+            if (detailed) {std::cout << get_variable_name(variable) << " = " << get_variable(variable).fact_names[postcon.fact.value] << ", ";}
+            else {std::cout << get_variable_name(variable) << " = " << postcon.fact.value << ", ";}
         }
         std::cout << std::endl;
     }
     std::cout << std::endl;
+}
+
+void SimplifiedTask::print_problem()
+{
+    cout << "Variables: ";
+    for (auto variable : variables)
+    {
+        cout << "  " << variable.name << std::endl;
+        for (auto fact : variable.fact_names)
+        {
+            cout << "    " << fact << std::endl;
+        }
+    }
+    cout << std::endl;
 }
 
 }

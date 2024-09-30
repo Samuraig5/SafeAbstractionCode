@@ -77,6 +77,8 @@ int main(int argc, const char **argv) {
             tasks::g_root_task = simplified_task;
         }
         while (foundSafeVariables);
+        //How should we handle the case where there's only one variable left (and its abstractable)
+        //while (foundSafeVariables && tasks::g_root_task->get_num_variables() > 1);
     }
 
     shared_ptr<SearchAlgorithm> search_algorithm =
