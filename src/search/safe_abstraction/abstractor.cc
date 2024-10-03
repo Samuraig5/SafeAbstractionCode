@@ -32,7 +32,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   std::vector<std::unique_ptr<domain_transition_graph::DomainTransitionGraph>> dtgs = dtg_factory.build_dtgs();
 
   std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
-  //for (auto &dtg : dtgs) { abstractor::printDTG(original_task, dtg); }
+  for (auto &dtg : dtgs) { abstractor::printDTG(original_task, dtg); }
 
   std::list<int> safe_variables;
 
@@ -105,11 +105,11 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
 
 	//Print results
-    //free_dtg->printFreeDTG(original_task);
-    //free_dtg->printExternalInformation(original_task);
-    //printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
-    //if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
-  	//std::cout << std::endl;
+    free_dtg->printFreeDTG(original_task);
+    free_dtg->printExternalInformation(original_task);
+    printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
+    if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
+  	std::cout << std::endl;
 
     if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachableByRequired) //TODO: Check if goal value is free reachable from all externally required values
     {
@@ -140,6 +140,9 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
         //Get the free_dtg with the same variable as the dtg being worked on
         freeDTG free_dtg = *find_freeDTG_by_variable(free_dtgs, var_id);
 
+        //Adds the initial value as externally caused
+    	find_freeDTG_by_variable(free_dtgs, var_id)->externallyCaused(original_task->get_initial_state_values()[var_id]);;
+
         for (auto &node : dtg->get_nodes())
 		{
             for (auto &transition : node.transitions)
@@ -149,45 +152,60 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
                 // Check preconditions and effects
                 for (auto &label : transition.labels)
 				{
-                 	bool are_precons_free = true;
+                    bool changes_other_variables = false;
+                	for (auto &postcon : label.effect)
+                	{
+                		if (var_id != loc_to_glob[postcon.local_var]) //changes atleast one other variable
+                		{
+                            //Check if other variable is changed by transition
+                			changes_other_variables = true;
+                		}
+                    }
 
-                	for (auto &precon : label.precond)
+                    if (changes_other_variables)
                     {
-                        int label_var =  loc_to_glob[precon.local_var];
-                        int label_val = precon.value;
-                		/*
-                		If the precon has a diffrent variable then the variable of the DTG then we know that the
-                		transition should not be included in the free DTG.
-                		 */
-                        if (var_id != label_var)
+                    	string var_name = original_task->get_variable_name(var_id);
+                        //Add values of postcons as externally caused
+                    	find_freeDTG_by_variable(free_dtgs, var_id)->externallyCaused(node.value);
+                    	for (auto &postcon : label.effect)
                         {
-                       		/*
-                       		Get the free DTG with the variable of this precon and mark the required value as
-                       		externally required.
-                       		 */
+                    		int label_var = loc_to_glob[postcon.local_var];
+                    		int label_val = postcon.value;
+                    		find_freeDTG_by_variable(free_dtgs, label_var)->externallyCaused(label_val);
+                        }
+
+                        //Add values of precons as externally required (since label changes two diffrent variables)
+                    	find_freeDTG_by_variable(free_dtgs, var_id)->externallyRequired(transition.target->value);
+                        for (auto &precon : label.precond)
+                        {
+                        	int label_var =  loc_to_glob[precon.local_var];
+                        	int label_val = precon.value;
                         	find_freeDTG_by_variable(free_dtgs, label_var)->externallyRequired(label_val);
-                            are_precons_free = false;
                         }
                     }
 
-                    bool are_postcons_free = true;
-                	for (auto &postcon : label.effect)
+                	bool requires_other_variables = false;
+                	for (auto &precon : label.precond)
                 	{
-                        int label_var = loc_to_glob[postcon.local_var];
-                        int label_val = postcon.value;
-                        //Same logic as with the precons
+                		int label_var =  loc_to_glob[precon.local_var];
+                		int label_val = precon.value;
                 		if (var_id != label_var)
                 		{
-                		    /*
-                       		Get the free DTG with the variable of this postcon and mark the required value as
-                       		externally caused.
-                       		 */
-                			find_freeDTG_by_variable(free_dtgs, label_var)->externallyCaused(label_val);
-                            are_postcons_free = false;
+                            /*
+      							We need this second check for labels with the form:
+                					transition: var0 = 1 -> var0 = 0
+										precon: var0 = 1, [var1 = 0]
+										postcon: var0 = 0,
+      							So we can ensure that var1 = 0 is marked as externally required
+      							(since it is required for an action that changes another variable)
+                             */
+                			find_freeDTG_by_variable(free_dtgs, label_var)->externallyRequired(label_val);
+                			requires_other_variables = true;
                 		}
                 	}
+
                     //If atleast one label is free then there is a "free" version of the transition
-                    if (are_precons_free && are_postcons_free) {is_transition_free = true;}
+                    if (!requires_other_variables && !changes_other_variables) {is_transition_free = true;}
                 }
 
                 if (is_transition_free) {
@@ -272,7 +290,7 @@ void abstractor::printDTG(std::shared_ptr<AbstractTask> original_task, std::uniq
                     {
                         int label_var =  loc_to_glob[precon.local_var];
                         int label_val = precon.value;
-                		std::cout << "[" << original_task->get_variable_name(transition.target->parent_graph->get_var()) << " = " << label_val << "], ";
+                		std::cout << "[" << original_task->get_variable_name(label_var) << " = " << label_val << "], ";
 
                         if (var_id != label_var) { are_precons_free = false; }
                     }
