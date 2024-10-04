@@ -218,7 +218,7 @@ void abstractor::printResults(std::shared_ptr<AbstractTask> original_task, bool 
 
 void abstractor::printOperations(TaskProxy task_proxy)
 {
-    cout << "Operations of task" << endl;
+    cout << "Operations of task:" << endl;
     for (auto op : task_proxy.get_operators())
     {
         cout << "  " << op.get_name() << endl;
@@ -229,7 +229,7 @@ void abstractor::printOperations(TaskProxy task_proxy)
             int precon_val = precondition.get_value();
             cout << precon_var.get_name() << " = " << precon_val << ", ";
         }
-		cout << endl << "    " << "Precon: ";
+		cout << endl << "    " << "Postcon: ";
         for (auto postcondition : op.get_effects())
         {
         	auto postcondition_fact = postcondition.get_fact();
