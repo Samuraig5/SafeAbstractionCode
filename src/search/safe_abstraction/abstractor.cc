@@ -20,7 +20,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   Calls the main function of abstractor to calculate the free domain transition graphs.
   At the same time it collects information about which values per variable are externally required and externally caused.
    */
-  std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(task_proxy);
+  std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(original_task, task_proxy);
 
   for (const auto &free_dtg : free_dtgs)
   {
@@ -101,14 +101,16 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   return safe_variables;
 }
 
-std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_graph(TaskProxy task_proxy)
+std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_graph(std::shared_ptr<AbstractTask> original_task, TaskProxy task_proxy)
 {
     //Create the (empty) free DTGs
 	std::vector<std::unique_ptr<freeDTG>> free_dtgs;
     for (VariableProxy variable : task_proxy.get_variables())
     {
 		freeDTG free_dtg(variable.get_id(), variable.get_domain_size());
-		free_dtgs.push_back(std::make_unique<freeDTG>(std::move(free_dtg)));
+        //Adding initial value as externallyCaused
+    	free_dtg.externallyCaused(original_task->get_initial_state_values()[variable.get_id()]);;
+        free_dtgs.push_back(std::make_unique<freeDTG>(std::move(free_dtg)));
     }
 
     for (auto op : task_proxy.get_operators())

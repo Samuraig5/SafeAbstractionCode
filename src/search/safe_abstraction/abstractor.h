@@ -9,7 +9,7 @@
 class abstractor {
   private:
     static std::vector<std::unique_ptr<freeDTG>> get_free_domain_transition_graph(
-    	TaskProxy task_proxy);
+    	std::shared_ptr<AbstractTask> original_task, TaskProxy task_proxy);
     static freeDTG* find_freeDTG_by_variable(
         std::vector<std::unique_ptr<freeDTG>> &free_dtgs, int i);
     static void printResults(std::shared_ptr<AbstractTask> original_task, bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg);
