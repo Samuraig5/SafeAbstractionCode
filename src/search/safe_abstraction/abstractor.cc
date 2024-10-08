@@ -12,7 +12,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
   std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
   printTask(task_proxy);
-  printOperations(task_proxy);
+  //printOperations(task_proxy);
 
   std::list<int> safe_variables;
 
@@ -67,31 +67,48 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
     	}
     }
 
-    bool goalReachableByRequired = true;
+    bool goalReachable = true;
     if (hasGoal)
     {
-        //Check if goal value is reachable from the externally required values
-        for (int extReqVal : externallyRequiredValues)
-        {
-     	    //Since the externally req val would have to be stronly connected,
-     	    // being reachable from any ext.req.val should be sufficient to proof this property.
-    	    if (!free_dtg->isReachable(extReqVal, { goalValue }))
-            {
-        	    goalReachableByRequired = false;
-                break;
-            }
-        }
+    	if (externallyRequiredValues.size() > 0)
+    	{
+    		//Check if goal value is reachable from the externally required values
+        	for (int extReqVal : externallyRequiredValues)
+        	{
+     	    	//Since the externally req val would have to be stronly connected,
+     	    	// being reachable from any ext.req.val should be sufficient to proof this property.
+    	    	if (!free_dtg->isReachable(extReqVal, { goalValue }))
+            	{
+        	    	goalReachable = false;
+                	break;
+            	}
+        	}
+    	}
+    	else
+    	{
+    		//Check if goal value is reachable from the externally caused values
+        	for (int extCausedVal : externallyCausedValues)
+        	{
+     	    	//Since the externally req val would have to be stronly connected,
+     	    	// being reachable from any ext.req.val should be sufficient to proof this property.
+    	    	if (!free_dtg->isReachable(extCausedVal, { goalValue }))
+            	{
+        	    	goalReachable = false;
+                	break;
+            	}
+        	}
+    	}
     }
 
 
 	//Print results
     free_dtg->printFreeDTG(original_task);
     free_dtg->printExternalInformation(original_task);
-    printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachableByRequired, free_dtg.get());
+    printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachable, free_dtg.get());
     if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
   	std::cout << std::endl;
 
-    if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachableByRequired) //TODO: Check if goal value is free reachable from all externally required values
+    if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachable) //TODO: Check if goal value is free reachable from all externally required values
     {
     	safe_variables.push_back(free_dtg->getVariable());
     }
@@ -210,11 +227,11 @@ void abstractor::printResults(std::shared_ptr<AbstractTask> original_task, bool 
 
   	if (goalReachableByRequired)
   	{
-  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is reachable from externally required values" << std::endl;
+  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is reachable" << std::endl;
   	}
   	else
   	{
-  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is NOT reachable from externally required values" << std::endl;
+  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is NOT reachable" << std::endl;
   	}
 }
 
