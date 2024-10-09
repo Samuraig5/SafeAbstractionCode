@@ -11,8 +11,8 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   TaskProxy task_proxy(*original_task);
 
   std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
-  printTask(task_proxy);
-  //printOperations(task_proxy);
+  //printTask(task_proxy);
+  printOperations(task_proxy);
 
   std::list<int> safe_variables;
 
@@ -102,10 +102,10 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
 
 	//Print results
-    free_dtg->printFreeDTG(original_task);
-    free_dtg->printExternalInformation(original_task);
-    printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachable, free_dtg.get());
-    if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
+    //free_dtg->printFreeDTG(original_task);
+    //free_dtg->printExternalInformation(original_task);
+    //printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachable, free_dtg.get());
+    //if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
   	std::cout << std::endl;
 
     if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachable) //TODO: Check if goal value is free reachable from all externally required values
@@ -240,7 +240,7 @@ void abstractor::printOperations(TaskProxy task_proxy)
     cout << "Operations of task:" << endl;
     for (auto op : task_proxy.get_operators())
     {
-        cout << "  " << op.get_name() << endl;
+        cout << "  " << "(" << op.get_id() << ") " << op.get_name() << endl;
         cout << "    " << "Precon: ";
     	for (auto precondition : op.get_preconditions())
         {

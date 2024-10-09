@@ -8,6 +8,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 #include "safe_abstraction/abstractor.h"
+#include "safe_abstraction/refiner.h"
 
 #include <iostream>
 
@@ -28,12 +29,17 @@ int main(int argc, const char **argv) {
       simplified task to a plan for the original task.
     */
     shared_ptr<AbstractTask> original_task;
+
+    vector<shared_ptr<AbstractTask>> abstraction_hirarchy;
+
     if (static_cast<string>(argv[1]) != "--help") {
         utils::g_log << "reading input..." << endl;
         tasks::read_root_task(cin);
         utils::g_log << "done reading input!" << endl;
         TaskProxy task_proxy(*tasks::g_root_task);
         unit_cost = task_properties::is_unit_cost(task_proxy);
+
+        abstraction_hirarchy.push_back(tasks::g_root_task);
 
         bool foundSafeVariables = false;
         do
@@ -55,7 +61,11 @@ int main(int argc, const char **argv) {
                 for (int safe_variable : safe_variables) {cout << original_task->get_variable_name(safe_variable) << ", ";}
                 cout << endl;
             }
-            else {cout << "> No safe variables found!" << endl;}
+            else
+            {
+                 cout << "> No safe variables found!" << endl;
+                 break;
+            }
 
             /*
               Remo: We need this cast because the constructor of SimplifiedTask
@@ -75,6 +85,7 @@ int main(int argc, const char **argv) {
               not cause issues.
             */
             tasks::g_root_task = simplified_task;
+            abstraction_hirarchy.push_back(tasks::g_root_task);
         }
         while (foundSafeVariables);
         //How should we handle the case where there's only one variable left (and its abstractable)
@@ -93,6 +104,10 @@ int main(int argc, const char **argv) {
       Remo: Expand plan for the simplified task to a plan for the original task
       around here.
     */
+    if (search_algorithm->found_solution())
+    {
+        refiner::refine_plan(search_algorithm->get_plan(), abstraction_hirarchy);
+    }
 
     search_algorithm->save_plan_if_necessary();
     search_algorithm->print_statistics();
