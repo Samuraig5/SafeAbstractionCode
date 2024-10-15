@@ -158,7 +158,7 @@ void abstractor::create_free_domain_transition_graphs()
                 {
                 	freeOperation = true;
         			freeDTG free_dtg = *find_freeDTG_by_variable(precon_facts[0].first);
-                	free_dtg.addTransition(precon_facts[0].second, postcon_facts[0].second);
+                	free_dtg.addTransition(precon_facts[0].second, postcon_facts[0].second, op.get_id());
                 }
             }
         }

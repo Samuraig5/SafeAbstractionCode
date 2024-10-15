@@ -8,14 +8,14 @@ freeDTG::freeDTG(int var, int numberOfValues)
 {
     variable = var;
     numVal = numberOfValues;
-    this->transitions = new std::list<int>[numVal];
+    this->transitions = new std::list<Transition>[numVal];
     this->externallyRequiredValues = std::vector<bool>(numVal);
     this->externallyCausedValues = std::vector<bool>(numVal);
 }
 
-void freeDTG::addTransition(int a, int b)
+void freeDTG::addTransition(int a, int b, int operation_id)
 {
-    transitions[a].push_back(b); // Add b to a’s list. (Transtion from a to b)
+    transitions[a].emplace_back(b, operation_id); // Add b to a’s list. (Transtion from a to b)
 }
 
 void freeDTG::externallyRequired(int val)
@@ -64,12 +64,12 @@ void freeDTG::DFS(int v, std::vector<bool> *visited)
 {
     (*visited)[v] = true;
 
-    for (int value : transitions[v])
+    for (Transition transition : transitions[v])
     {
    		//Don't deepen if value was already visited (avoids getting stuck in cycles).
-        if (!(*visited)[value])
+        if (!(*visited)[transition.destination])
         {
-            DFS(value, visited);
+            DFS(transition.destination, visited);
         }
     }
 }
@@ -80,9 +80,9 @@ freeDTG freeDTG::getTranspose()
     freeDTG inversion(variable, numVal);
     for (int v = 0; v < numVal; v++)
     {
-        for (int w : transitions[v])
+        for (Transition w : transitions[v])
         {
-            inversion.addTransition(w, v);
+            inversion.addTransition(w.destination, v, w.operation_id);
         }
     }
     return inversion;
@@ -119,8 +119,8 @@ void freeDTG::printFreeDTG(std::shared_ptr<AbstractTask> original_task)
     std::cout << "safe_abstraction > FreeDTG of variable: " << original_task->get_variable_name(variable) << std::endl;
     for (int i = 0; i < numVal; ++i) {
         std::cout << "  Transitions for value " << i << ": [ ";
-        for (int value : transitions[i]) {
-            std::cout << value << " ";
+        for (Transition transition : transitions[i]) {
+            std::cout << transition.destination << " ";
         }
         std::cout << "]" << std::endl;
     }

@@ -52,7 +52,7 @@ void refiner::refine_step(Plan plan, abstractor &abstractor)
         	else
         	{
         		cout << "  Precon " << var.get_name() << " = " << val << " is NOT okay" << endl;
-
+                freeDTG freeDTG = *abstractor.find_freeDTG_by_variable(var.get_id());
         		//Add missing operations here
         	}
         }
