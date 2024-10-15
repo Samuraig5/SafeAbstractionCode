@@ -56,10 +56,11 @@ protected:
     virtual void initialize() {}
     virtual SearchStatus step() = 0;
 
-    void set_plan(const Plan &plan);
     bool check_goal_and_set_plan(const State &state);
     int get_adjusted_cost(const OperatorProxy &op) const;
 public:
+    void set_plan(const Plan &plan); //Had to make this public for refinemnet after safe abstraction
+
     SearchAlgorithm(const plugins::Options &opts);
     virtual ~SearchAlgorithm();
     virtual void print_statistics() const = 0;

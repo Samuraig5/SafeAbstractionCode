@@ -2,6 +2,7 @@
 #include "../abstract_task.h"
 #include <list>
 #include <vector>
+#include <queue>
 #include <iostream>
 
 freeDTG::freeDTG(int var, int numberOfValues)
@@ -113,6 +114,48 @@ bool freeDTG::isReachable(int startingValue, std::list<int> targetValues)
     return true;
 }
 
+struct PathNode {
+    int value;
+    std::vector<int> operation_ids;
+
+    PathNode(int value, std::vector<int> ops)
+        : value(value), operation_ids(std::move(ops)) {}
+};
+
+std::vector<int> freeDTG::getPath(int sourceVal, int destinationVal) {
+    if (sourceVal == destinationVal) return {};
+
+    std::queue<PathNode> queue;
+    std::unordered_map<int, bool> visited;
+
+    queue.emplace(sourceVal, std::vector<int>{});
+    visited[sourceVal] = true;
+
+    while (!queue.empty()) {
+        PathNode current = queue.front();
+        queue.pop();
+
+        // Explore all transitions from the current node
+        for (Transition& transition : transitions[current.value]) {
+            if (visited[transition.destination]) continue; // Skip if visited
+
+            // Create a new path with the current operation ID added
+            std::vector<int> new_path = current.operation_ids;
+            new_path.push_back(transition.operation_id);
+
+            // If we reached the destination, return the path
+            if (transition.destination == destinationVal) {
+                return new_path;
+            }
+
+            queue.emplace(transition.destination, new_path);
+            visited[transition.destination] = true;
+        }
+    }
+
+    // If no path is found, return an empty vector
+    return {};
+}
 
 void freeDTG::printFreeDTG(std::shared_ptr<AbstractTask> original_task)
 {

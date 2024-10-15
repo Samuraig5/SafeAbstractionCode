@@ -105,9 +105,9 @@ int main(int argc, const char **argv) {
     */
     if (search_algorithm->found_solution())
     {
-        refiner::refine_plan(search_algorithm->get_plan(), abstraction_hirarchy);
+        Plan refinedPlan = refiner::refine_plan(search_algorithm->get_plan(), abstraction_hirarchy);
+        search_algorithm->set_plan(refinedPlan);
     }
-
     search_algorithm->save_plan_if_necessary();
     search_algorithm->print_statistics();
     utils::g_log << "Search time: " << search_timer << endl;

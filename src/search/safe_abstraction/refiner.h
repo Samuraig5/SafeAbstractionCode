@@ -7,9 +7,9 @@
 
 class refiner {
     private:
-        static void refine_step(Plan plan, abstractor &abstractor);
+        static void refine_step(Plan &plan, abstractor &abstractor);
     public:
-        static void refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy);
+        static Plan refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy);
 };
 
 #endif //REFINER_H

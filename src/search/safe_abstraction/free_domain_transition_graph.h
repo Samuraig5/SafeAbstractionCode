@@ -34,6 +34,7 @@ class freeDTG
     bool isReachable(int value, std::list<int> targetValues);
     void printFreeDTG(std::shared_ptr<AbstractTask> original_task);
     void printExternalInformation(std::shared_ptr<AbstractTask> original_task);
+    std::vector<int> getPath(int sourceVal, int destinationVal);
 };
 
 #endif //FREE_DOMAIN_TRANSITION_GRAPH_H
