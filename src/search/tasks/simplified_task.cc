@@ -30,9 +30,9 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
     resizeVariableIDs(safeVariables);
     removeVariables(safeVariables);
 
-    print_variables();
+    //print_variables();
     //print_mutexes();
-    print_operators();
+    //print_operators();
 }
 
 void SimplifiedTask::removeVariables(std::list<int> safeVarID)

@@ -1,22 +1,23 @@
 #include "refiner.h"
 #include "../task_proxy.h"
 
-void refiner::refine_plan(Plan plan, vector<shared_ptr<AbstractTask>> abstraction_hirarchy)
+void refiner::refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy)
 {
 	int i = 0;
 	std::reverse(abstraction_hirarchy.begin(), abstraction_hirarchy.end());
 
-    for (auto task : abstraction_hirarchy)
+    for (auto step : abstraction_hirarchy)
     {
-        TaskProxy task_proxy(*task);
         cout << "refining step: " << i << endl;
         i++;
-        refiner::refine_step(plan, task_proxy);
+        refiner::refine_step(plan, step);
     }
 }
 
-void refiner::refine_step(Plan plan, TaskProxy task_proxy)
+void refiner::refine_step(Plan plan, abstractor &abstractor)
 {
+    TaskProxy task_proxy = abstractor.getTaskProxy();
+
     auto operations = task_proxy.get_operators();
     auto variables = task_proxy.get_variables();
     State initial_state = task_proxy.get_initial_state();

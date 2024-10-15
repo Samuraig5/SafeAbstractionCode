@@ -7,17 +7,24 @@
 
 
 class abstractor {
+  std::shared_ptr<AbstractTask> abstractTask;
+  TaskProxy taskProxy;
+  std::vector<freeDTG> freeDTGs;
+
   private:
-    static std::vector<std::unique_ptr<freeDTG>> get_free_domain_transition_graph(
-    	std::shared_ptr<AbstractTask> original_task, TaskProxy task_proxy);
-    static freeDTG* find_freeDTG_by_variable(
-        std::vector<std::unique_ptr<freeDTG>> &free_dtgs, int i);
-    static void printResults(std::shared_ptr<AbstractTask> original_task, bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg);
-    static void printOperations(TaskProxy task_proxy);
-    static void printTask(TaskProxy task_proxy);
+    void create_free_domain_transition_graphs();
+    void printResults(bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg);
+    void printOperations();
+    void printTask();
 
   public:
-    static std::list<int> find_safe_variables(std::shared_ptr<AbstractTask> original_task);
+      abstractor(std::shared_ptr<AbstractTask> abstractTask)
+          : abstractTask(abstractTask), taskProxy(*abstractTask)
+      {}
+      std::list<int> find_safe_variables();
+      std::shared_ptr<AbstractTask> getAbstractTask() { return abstractTask; }
+      TaskProxy getTaskProxy() { return taskProxy; }
+      freeDTG* find_freeDTG_by_variable(int var_id);
 };
 
 #endif //ABSTRACTOR_H

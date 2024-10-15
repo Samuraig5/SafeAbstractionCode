@@ -30,7 +30,7 @@ int main(int argc, const char **argv) {
     */
     shared_ptr<AbstractTask> original_task;
 
-    vector<shared_ptr<AbstractTask>> abstraction_hirarchy;
+    vector<abstractor> abstraction_hirarchy;
 
     if (static_cast<string>(argv[1]) != "--help") {
         utils::g_log << "reading input..." << endl;
@@ -38,8 +38,6 @@ int main(int argc, const char **argv) {
         utils::g_log << "done reading input!" << endl;
         TaskProxy task_proxy(*tasks::g_root_task);
         unit_cost = task_properties::is_unit_cost(task_proxy);
-
-        abstraction_hirarchy.push_back(tasks::g_root_task);
 
         bool foundSafeVariables = false;
         do
@@ -53,7 +51,9 @@ int main(int argc, const char **argv) {
               below. The 'int' is just a placeholder for whatever data type we will
               need here in the end.
             */
-            std::list<int> safe_variables = abstractor::find_safe_variables(original_task);
+            abstraction_hirarchy.emplace_back(original_task);
+            std::list<int> safe_variables = abstraction_hirarchy.back().find_safe_variables();
+
             if (!safe_variables.empty())
             {
                 foundSafeVariables = true;
@@ -85,7 +85,6 @@ int main(int argc, const char **argv) {
               not cause issues.
             */
             tasks::g_root_task = simplified_task;
-            abstraction_hirarchy.push_back(tasks::g_root_task);
         }
         while (foundSafeVariables);
         //How should we handle the case where there's only one variable left (and its abstractable)

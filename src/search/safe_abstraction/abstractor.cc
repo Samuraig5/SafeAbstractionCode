@@ -5,14 +5,12 @@
 #include "free_domain_transition_graph.h"
 #include "../tasks/root_task.h"
 
-std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> original_task )
+std::list<int> abstractor::find_safe_variables()
 {
-  //We need a TaskProxy but original_task is an AbstractTask.
-  TaskProxy task_proxy(*original_task);
 
   std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
-  //printTask(task_proxy);
-  printOperations(task_proxy);
+  //printTask();
+  //printOperations();
 
   std::list<int> safe_variables;
 
@@ -20,31 +18,32 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   Calls the main function of abstractor to calculate the free domain transition graphs.
   At the same time it collects information about which values per variable are externally required and externally caused.
    */
-  std::vector<std::unique_ptr<freeDTG>> free_dtgs = abstractor::get_free_domain_transition_graph(original_task, task_proxy);
 
-  for (const auto &free_dtg : free_dtgs)
+  create_free_domain_transition_graphs();
+
+  for (auto &free_dtg : freeDTGs)
   {
     //Check for Strong Connectedness of externally required values
   	std::list<int> externallyRequiredValues;
   	//Convert bool list into a list of ints
-  	for (int i = 0; i < free_dtg->getExternallyRequiredValues().size(); ++i) {
-  		if (free_dtg->getExternallyRequiredValues()[i]) {externallyRequiredValues.push_back(i);}
+  	for (int i = 0; i < free_dtg.getExternallyRequiredValues().size(); ++i) {
+  		if (free_dtg.getExternallyRequiredValues()[i]) {externallyRequiredValues.push_back(i);}
   	}
 
-    bool extReqValAreStronglyConnected = free_dtg->isStronglyConnected(externallyRequiredValues);
+    bool extReqValAreStronglyConnected = free_dtg.isStronglyConnected(externallyRequiredValues);
 
 	// > Check for Reachability of externally required values from externally caused values
   	std::list<int> externallyCausedValues;
   	//Convert bool list into a list of ints
-  	for (int i = 0; i < free_dtg->getExternallyCausedValues().size(); ++i) {
-  		if (free_dtg->getExternallyCausedValues()[i]) {externallyCausedValues.push_back(i);}
+  	for (int i = 0; i < free_dtg.getExternallyCausedValues().size(); ++i) {
+  		if (free_dtg.getExternallyCausedValues()[i]) {externallyCausedValues.push_back(i);}
   	}
 
     bool allReqReachableByCaused = true;
     //Check if all externally required values are reachable from the externally caused values
     for (int extCausedVal : externallyCausedValues)
     {
-    	if (!free_dtg->isReachable(extCausedVal, externallyRequiredValues))
+    	if (!free_dtg.isReachable(extCausedVal, externallyRequiredValues))
         {
         	allReqReachableByCaused = false;
             break;
@@ -54,12 +53,12 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
     // > Check for Reachability of goal value from externally required values
     bool hasGoal = false;
     int goalValue;
-    GoalsProxy goals = task_proxy.get_goals();
+    GoalsProxy goals = taskProxy.get_goals();
 
     for (int i = 0; i < goals.size(); ++i) //Is there a better way to do this?
     {
     	FactProxy goalFact = goals[i];
-    	if (goalFact.get_variable().get_id() == free_dtg->getVariable())
+    	if (goalFact.get_variable().get_id() == free_dtg.getVariable())
     	{
     		goalValue = goalFact.get_value();
     		hasGoal = true;
@@ -77,7 +76,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
         	{
      	    	//Since the externally req val would have to be stronly connected,
      	    	// being reachable from any ext.req.val should be sufficient to proof this property.
-    	    	if (!free_dtg->isReachable(extReqVal, { goalValue }))
+    	    	if (!free_dtg.isReachable(extReqVal, { goalValue }))
             	{
         	    	goalReachable = false;
                 	break;
@@ -91,7 +90,7 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
         	{
      	    	//Since the externally req val would have to be stronly connected,
      	    	// being reachable from any ext.req.val should be sufficient to proof this property.
-    	    	if (!free_dtg->isReachable(extCausedVal, { goalValue }))
+    	    	if (!free_dtg.isReachable(extCausedVal, { goalValue }))
             	{
         	    	goalReachable = false;
                 	break;
@@ -102,15 +101,15 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
 
 
 	//Print results
-    //free_dtg->printFreeDTG(original_task);
-    //free_dtg->printExternalInformation(original_task);
-    //printResults(original_task, extReqValAreStronglyConnected, allReqReachableByCaused, goalReachable, free_dtg.get());
+    //free_dtg->printFreeDTG(abstractTask);
+    //free_dtg->printExternalInformation(abstractTask);
+    //printResults(extReqValAreStronglyConnected, allReqReachableByCaused, goalReachable, free_dtg.get());
     //if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
   	std::cout << std::endl;
 
     if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachable) //TODO: Check if goal value is free reachable from all externally required values
     {
-    	safe_variables.push_back(free_dtg->getVariable());
+    	safe_variables.push_back(free_dtg.getVariable());
     }
   }
   std::cout << "=======================================================================" << std::endl;
@@ -118,19 +117,17 @@ std::list<int> abstractor::find_safe_variables(std::shared_ptr<AbstractTask> ori
   return safe_variables;
 }
 
-std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_graph(std::shared_ptr<AbstractTask> original_task, TaskProxy task_proxy)
+void abstractor::create_free_domain_transition_graphs()
 {
-    //Create the (empty) free DTGs
-	std::vector<std::unique_ptr<freeDTG>> free_dtgs;
-    for (VariableProxy variable : task_proxy.get_variables())
+    for (VariableProxy variable : taskProxy.get_variables())
     {
 		freeDTG free_dtg(variable.get_id(), variable.get_domain_size());
         //Adding initial value as externallyCaused
-    	free_dtg.externallyCaused(original_task->get_initial_state_values()[variable.get_id()]);;
-        free_dtgs.push_back(std::make_unique<freeDTG>(std::move(free_dtg)));
+    	free_dtg.externallyCaused(abstractTask->get_initial_state_values()[variable.get_id()]);;
+        freeDTGs.push_back(free_dtg);
     }
 
-    for (auto op : task_proxy.get_operators())
+    for (auto op : taskProxy.get_operators())
     {
     	std::vector<std::pair<int, int>> precon_facts;
     	for (auto precondition : op.get_preconditions())
@@ -160,7 +157,7 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
             	if (precon_facts[0].first == postcon_facts[0].first)
                 {
                 	freeOperation = true;
-        			freeDTG free_dtg = *find_freeDTG_by_variable(free_dtgs, precon_facts[0].first);
+        			freeDTG free_dtg = *find_freeDTG_by_variable(precon_facts[0].first);
                 	free_dtg.addTransition(precon_facts[0].second, postcon_facts[0].second);
                 }
             }
@@ -173,72 +170,69 @@ std::vector<std::unique_ptr<freeDTG>> abstractor::get_free_domain_transition_gra
             	for (auto postcon_fact : postcon_facts) {
             		if (precon_fact.first != postcon_fact.first)
             		{
-            			find_freeDTG_by_variable(free_dtgs, precon_fact.first)->externallyRequired(precon_fact.second);
+            			find_freeDTG_by_variable(precon_fact.first)->externallyRequired(precon_fact.second);
             		}
             	}
         	}
-
         	//Mark relevant postcons as externally caused
         	//This can be optimised by not looping over all postcons for each postcon, instead only those who wasn't compared to yet.
         	for (auto postcon_fact_1 : postcon_facts) {
         		for (auto postcon_fact_2 : postcon_facts) {
                 	if (postcon_fact_1.first != postcon_fact_2.first)
             		{
-            			find_freeDTG_by_variable(free_dtgs, postcon_fact_1.first)->externallyCaused(postcon_fact_1.second);
-                    	find_freeDTG_by_variable(free_dtgs, postcon_fact_2.first)->externallyCaused(postcon_fact_2.second);
+            			find_freeDTG_by_variable(postcon_fact_1.first)->externallyCaused(postcon_fact_1.second);
+                    	find_freeDTG_by_variable(postcon_fact_2.first)->externallyCaused(postcon_fact_2.second);
             		}
             	}
         	}
         }
     }
-	return free_dtgs;
 }
 
-freeDTG* abstractor::find_freeDTG_by_variable(
-    std::vector<std::unique_ptr<freeDTG>> &free_dtgs, int i)
+freeDTG* abstractor::find_freeDTG_by_variable(int var_id)
 {
-	for (const auto &free_dtg : free_dtgs) {
-		if (free_dtg->getVariable() == i) {
-			return free_dtg.get();
+	for (auto &free_dtg : freeDTGs) {
+		if (free_dtg.getVariable() == var_id) {
+			return &free_dtg;
 		}
 	}
 	return nullptr;
 }
 
-void abstractor::printResults(std::shared_ptr<AbstractTask> original_task, bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg)
+void abstractor::printResults(bool extReqValAreStronglyConnected, bool allReqReachableByCaused, bool goalReachableByRequired, freeDTG *free_dtg)
 {
   	if (extReqValAreStronglyConnected)
     {
-  		std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are strongly connected in the free DTG" << std::endl;
+  		std::cout << "Externally required values of " << abstractTask->get_variable_name(free_dtg->getVariable()) << " are strongly connected in the free DTG" << std::endl;
     }
     else
     {
-    	std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are NOT strongly connected in the free DTG" << std::endl;
+    	std::cout << "Externally required values of " << abstractTask->get_variable_name(free_dtg->getVariable()) << " are NOT strongly connected in the free DTG" << std::endl;
     }
 
     if (allReqReachableByCaused)
   	{
-  		std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are reachable by externally caused values" << std::endl;
+  		std::cout << "Externally required values of " << abstractTask->get_variable_name(free_dtg->getVariable()) << " are reachable by externally caused values" << std::endl;
   	}
   	else
   	{
-  		std::cout << "Externally required values of " << original_task->get_variable_name(free_dtg->getVariable()) << " are NOT reachable by externally caused values" << std::endl;
+  		std::cout << "Externally required values of " << abstractTask->get_variable_name(free_dtg->getVariable()) << " are NOT reachable by externally caused values" << std::endl;
   	}
 
   	if (goalReachableByRequired)
   	{
-  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is reachable" << std::endl;
+  		std::cout << "Goal value of variable " << abstractTask->get_variable_name(free_dtg->getVariable()) << " is reachable" << std::endl;
   	}
   	else
   	{
-  		std::cout << "Goal value of variable " << original_task->get_variable_name(free_dtg->getVariable()) << " is NOT reachable" << std::endl;
+  		std::cout << "Goal value of variable " << abstractTask->get_variable_name(free_dtg->getVariable()) << " is NOT reachable" << std::endl;
   	}
 }
 
-void abstractor::printOperations(TaskProxy task_proxy)
+void abstractor::printOperations()
 {
     cout << "Operations of task:" << endl;
-    for (auto op : task_proxy.get_operators())
+    for (auto op : taskProxy.get_operators())
     {
         cout << "  " << "(" << op.get_id() << ") " << op.get_name() << endl;
         cout << "    " << "Precon: ";
@@ -260,11 +254,11 @@ void abstractor::printOperations(TaskProxy task_proxy)
     }
 }
 
-void abstractor::printTask(TaskProxy task_proxy)
+void abstractor::printTask()
 {
     cout << endl;
     cout << "Task: " << endl;
-    for (VariableProxy variable : task_proxy.get_variables())
+    for (VariableProxy variable : taskProxy.get_variables())
     {
        	cout << "  " << variable.get_name() << std::endl;
         for (int i = 0; i < variable.get_domain_size(); i++)
