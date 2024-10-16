@@ -152,7 +152,7 @@ std::vector<int> freeDTG::getPath(int sourceVal, int destinationVal) {
             visited[transition.destination] = true;
         }
     }
-
+    //std::cout << "Could not find path from " << sourceVal << " to " << destinationVal << " for variable " << variable << std::endl;
     // If no path is found, return an empty vector
     return {};
 }

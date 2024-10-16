@@ -96,6 +96,7 @@ void refiner::insertMissingOperations(Plan &plan, abstractor &abstractor,int ins
 {
     freeDTG freeDTG = *abstractor.find_freeDTG_by_variable(varID);
     std::vector<int> newOperations = freeDTG.getPath(startVal, endVal);
+    //cout << "Length of path: " << newOperations.size() << endl;
     std::reverse(newOperations.begin(), newOperations.end());
     for (int opID : newOperations)
     {

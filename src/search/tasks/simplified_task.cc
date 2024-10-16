@@ -95,7 +95,9 @@ void SimplifiedTask::removeOperators(std::list<int> safeVarID)
             if (safe_op == operators[i].name)
             {
                 //cout << "Removing operation: " << safe_op << std::endl;
-                operators.erase(operators.begin() + i);
+                //operators.erase(operators.begin() + i);
+                operators[i].preconditions.clear();
+                operators[i].effects.clear();
                 break;
             }
         }
