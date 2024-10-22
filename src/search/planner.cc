@@ -39,7 +39,10 @@ int main(int argc, const char **argv) {
         TaskProxy task_proxy(*tasks::g_root_task);
         unit_cost = task_properties::is_unit_cost(task_proxy);
 
+        std::cout << "============================ SAFE ABSTRACTION ==========================" << std::endl;
+
         bool foundSafeVariables = false;
+        int numSafeVariables = 0;
         do
         {
             foundSafeVariables = false;
@@ -57,13 +60,17 @@ int main(int argc, const char **argv) {
             if (!safe_variables.empty())
             {
                 foundSafeVariables = true;
-                cout << "> Found safe variable: ";
-                for (int safe_variable : safe_variables) {cout << original_task->get_variable_name(safe_variable) << ", ";}
+                cout << "Found safe variable: ";
+                for (int safe_variable : safe_variables)
+                {
+                  cout << original_task->get_variable_name(safe_variable) << ", ";
+                  numSafeVariables++;
+                }
                 cout << endl;
             }
             else
             {
-                 cout << "> No safe variables found!" << endl;
+                 cout << "No safe variables found!" << endl;
                  break;
             }
 
@@ -89,6 +96,7 @@ int main(int argc, const char **argv) {
         while (foundSafeVariables);
         //How should we handle the case where there's only one variable left (and its abstractable)
         //while (foundSafeVariables && tasks::g_root_task->get_num_variables() > 1);
+        std::cout << "=======================================================================" << std::endl;
     }
 
     shared_ptr<SearchAlgorithm> search_algorithm =

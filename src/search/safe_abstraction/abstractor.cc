@@ -7,8 +7,7 @@
 
 std::list<int> abstractor::find_safe_variables()
 {
-
-  std::cout << "============================ SAFE ABSTRACTOR ==========================" << std::endl;
+  cout << "> Running Abstractor" << endl;
   //printTask();
   //printOperations();
 
@@ -112,7 +111,6 @@ std::list<int> abstractor::find_safe_variables()
     	safe_variables.push_back(free_dtg.getVariable());
     }
   }
-  std::cout << "=======================================================================" << std::endl;
 
   return safe_variables;
 }

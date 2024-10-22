@@ -3,6 +3,8 @@
 
 Plan refiner::refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy)
 {
+    cout << "> Refining Task" << endl;
+
 	int i = 0;
 	std::reverse(abstraction_hirarchy.begin(), abstraction_hirarchy.end());
 

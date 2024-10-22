@@ -17,6 +17,9 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
         vector<FactPair> goals;
     */
 
+  	cout << "> Simplifing Task" << endl;
+
+
     //print_problem();
 
     //print_variables();
