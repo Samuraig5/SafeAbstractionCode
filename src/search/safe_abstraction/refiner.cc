@@ -3,18 +3,24 @@
 
 Plan refiner::refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy)
 {
-    cout << "> Refining Task" << endl;
+    std::cout << "=============================== REFINEMNET =============================" << std::endl;
+
+    cout << "> Simplified Plan Length: " << plan.size() << endl;
 
 	int i = 0;
 	std::reverse(abstraction_hirarchy.begin(), abstraction_hirarchy.end());
 
     for (auto step : abstraction_hirarchy)
     {
-        cout << "refining step: " << i << endl;
+        cout << "> Refining Step: " << i << endl;
         i++;
         refiner::refine_step(plan, step);
+        cout << "Intermediate Plan Length: " << plan.size() << endl;
     }
+    cout << endl;
+    cout << "Took " << i+1 << " steps to refine plan" << endl;
     cout << "Refined Plan Length: " << plan.size() << endl;
+    std::cout << "========================================================================" << std::endl;
     return plan;
 }
 
@@ -36,7 +42,7 @@ void refiner::refine_step(Plan &plan, abstractor &abstractor)
 
     for (int i = 0; i < plan.size(); i++)
     {
-      OperatorID opID = plan[i];
+        OperatorID opID = plan[i];
 
       /*
     	cout << "  Current State: " << endl;
@@ -79,6 +85,7 @@ void refiner::refine_step(Plan &plan, abstractor &abstractor)
 			state[var.get_id()].value = val;
         }
     }
+    //cout << "Intermediate task has " << goals.size() << " goals" << endl;
     for (auto goal : goals)
     {
         int goalVar = goal.get_variable().get_id();
@@ -87,22 +94,33 @@ void refiner::refine_step(Plan &plan, abstractor &abstractor)
             continue;}
         else
         {
-            refiner::insertMissingOperations(plan, abstractor, plan.size()-1, goalVar, state[goalVar].value, goalVar);
+            int index;
+            if (!plan.empty())
+            {
+                index = plan.size()-1;
+            }
+            else
+            {
+                index = 0;
+            }
+            refiner::insertMissingOperations(plan, abstractor, index, goalVar, state[goalVar].value, goalVal);
             refiner::refine_step(plan, abstractor);
             return;
         }
     }
 }
 
-void refiner::insertMissingOperations(Plan &plan, abstractor &abstractor,int insertionIndex , int varID, int startVal, int endVal)
+void refiner::insertMissingOperations(Plan &plan, abstractor &abstractor, int insertionIndex , int varID, int startVal, int endVal)
 {
+    //cout << "Inserting new opertaion" << endl;
     freeDTG freeDTG = *abstractor.find_freeDTG_by_variable(varID);
+    //cout << "  Searching for path" << endl;
     std::vector<int> newOperations = freeDTG.getPath(startVal, endVal);
-    //cout << "Length of path: " << newOperations.size() << endl;
+    //cout << "  Found Length of path: " << newOperations.size() << endl;
     std::reverse(newOperations.begin(), newOperations.end());
     for (int opID : newOperations)
     {
-        //cout << "    " << " inserting operation: " << opID << endl;
+        //cout << "  Inserting operation: " << opID << endl;
         plan.insert(plan.begin()+insertionIndex, OperatorID(opID));
     }
 }

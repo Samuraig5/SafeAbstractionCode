@@ -104,7 +104,7 @@ std::list<int> abstractor::find_safe_variables()
     //free_dtg->printExternalInformation(abstractTask);
     //printResults(extReqValAreStronglyConnected, allReqReachableByCaused, goalReachable, free_dtg.get());
     //if (hasGoal) { std::cout << "Goal State: " << goalValue << std::endl; } else { std::cout << "No Goal State found" << std::endl; }
-  	std::cout << std::endl;
+  	//std::cout << std::endl;
 
     if (extReqValAreStronglyConnected && allReqReachableByCaused && goalReachable) //TODO: Check if goal value is free reachable from all externally required values
     {

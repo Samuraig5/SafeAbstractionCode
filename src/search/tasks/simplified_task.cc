@@ -28,7 +28,7 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
 
     cout << "Abstracting safeVariables" << endl;
     //axioms.clear();
-    removeOperators(safeVariables);
+    simplifyOperators(safeVariables);
     removeGoals(safeVariables);
     resizeVariableIDs(safeVariables);
     removeVariables(safeVariables);
@@ -61,7 +61,7 @@ void SimplifiedTask::removeVariables(std::list<int> safeVarID)
     }
 }
 
-void SimplifiedTask::removeOperators(std::list<int> safeVarID)
+void SimplifiedTask::simplifyOperators(std::list<int> safeVarID)
 {
     std::list<string> safeOperators;
     for (int i = 0; i < (int)operators.size(); i++)
@@ -164,8 +164,15 @@ void SimplifiedTask::resizeVariableIDs(std::list<int> safeVarID)
 {
     int offset = 0;
     safeVarID.sort();
+    //cout << "Rezining these variable ids: ";
+    //for (int target : safeVarID)
+    //{
+    //  cout << target << ", ";
+    //}
+    //cout << endl;
     for (int target : safeVarID) {
         target = target - offset;//This "moves" safeVarIDs as the list is shifted
+        //cout << "Adjusting: " << target << endl;
 
         //Starting from the next higher variable (If we remove variable 3, we want to reduce all variables 4,5,6,... by one)
         for (int i = target+1; i < (int)variables.size(); i++) {

@@ -41,6 +41,7 @@ int main(int argc, const char **argv) {
 
         std::cout << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
+        cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
         bool foundSafeVariables = false;
         int numSafeVariables = 0;
         do
@@ -71,7 +72,6 @@ int main(int argc, const char **argv) {
             else
             {
                  cout << "No safe variables found!" << endl;
-                 break;
             }
 
             /*
@@ -92,38 +92,60 @@ int main(int argc, const char **argv) {
               not cause issues.
             */
             tasks::g_root_task = simplified_task;
+            task_proxy = abstraction_hirarchy.back().getTaskProxy();
         }
         while (foundSafeVariables);
         //How should we handle the case where there's only one variable left (and its abstractable)
         //while (foundSafeVariables && tasks::g_root_task->get_num_variables() > 1);
-        std::cout << "=======================================================================" << std::endl;
+
+        cout << endl;
+        cout << "Abstracted " << numSafeVariables << " safe variables." << endl;
+        cout << task_proxy.get_variables().size() << " variables remain." << endl;
+        std::cout << "========================================================================" << std::endl;
     }
-
-    shared_ptr<SearchAlgorithm> search_algorithm =
-        parse_cmd_line(argc, argv, unit_cost);
-
-    utils::Timer search_timer;
-    search_algorithm->search();
-    search_timer.stop();
-    utils::g_timer.stop();
-
+    TaskProxy task_proxy = abstraction_hirarchy.back().getTaskProxy();
+    cout << endl;
     /*
-      Remo: Expand plan for the simplified task to a plan for the original task
-      around here.
+    Remo: Expand plan for the simplified task to a plan for the original task
+    around here.
     */
-    if (search_algorithm->found_solution())
+    if (task_proxy.get_variables().size() > 0)
     {
+      cout << "Running search algorithm" << endl;
+      shared_ptr<SearchAlgorithm> search_algorithm = parse_cmd_line(argc, argv, unit_cost);
+      utils::Timer search_timer;
+      search_algorithm->search();
+      search_timer.stop();
+      utils::g_timer.stop();
+      if (search_algorithm->found_solution())
+      {
+        cout << endl;
         Plan refinedPlan = refiner::refine_plan(search_algorithm->get_plan(), abstraction_hirarchy);
         search_algorithm->set_plan(refinedPlan);
-    }
-    search_algorithm->save_plan_if_necessary();
-    search_algorithm->print_statistics();
-    utils::g_log << "Search time: " << search_timer << endl;
-    utils::g_log << "Total time: " << utils::g_timer << endl;
+      }
+      cout << endl;
+      search_algorithm->save_plan_if_necessary();
+      search_algorithm->print_statistics();
 
-    ExitCode exitcode = search_algorithm->found_solution()
-        ? ExitCode::SUCCESS
-        : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
-    utils::report_exit_code_reentrant(exitcode);
-    return static_cast<int>(exitcode);
+      utils::g_log << "Search time: " << search_timer << endl;
+      utils::g_log << "Total time: " << utils::g_timer << endl;
+
+      ExitCode exitcode = search_algorithm->found_solution()
+      ? ExitCode::SUCCESS
+      : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+      utils::report_exit_code_reentrant(exitcode);
+      return static_cast<int>(exitcode);
+    }
+    else
+    {
+      cout << "Abstraction solved the problem." << endl;
+      cout << "Skipping search algorithm." << endl;
+      Plan emptyPlan;
+      cout << endl;
+      Plan refinedPlan = refiner::refine_plan(emptyPlan, abstraction_hirarchy);
+      cout << endl;
+      PlanManager plan_manager;
+      plan_manager.save_plan(refinedPlan, task_proxy);
+
+    }
 }
