@@ -2,7 +2,7 @@
 
 void variableAdjuster::adjustOperators(int targetVar, vector<ExplicitOperator> &operators)
 {
-    //cout << "reducing variable index for " << targetVar << " in operators by one" << endl;
+    cout << "    Reducing variable index for " << targetVar << " in operators by one..." << endl;
     for (ExplicitOperator &op : operators)
     {
         for (FactPair &precon : op.preconditions){
@@ -25,7 +25,7 @@ void variableAdjuster::adjustOperators(int targetVar, vector<ExplicitOperator> &
 
 void variableAdjuster::adjustInitialValues(int targetVar, vector<int> &initialValues)
 {
-    //cout << "reducing variable index for " << targetVar << " in initial values by one" << endl;
+    cout << "    Reducing variable index for " << targetVar << " in initial values by one..." << endl;
     initialValues[targetVar-1] = initialValues[targetVar]; //Shifts all initial values "down" one
 }
 
@@ -43,14 +43,13 @@ void variableAdjuster::adjustGoals(int targetVar, vector<FactPair> &goals)
 
 void variableAdjuster::adjustMutexIndex(int targetVar, vector<vector<set<FactPair>>> &mutexes)
 {
-    //cout << "reducing variable index for " << targetVar << " in mutex vector by one" << endl;
-
+    cout << "    Reducing variable index for " << targetVar << " in mutex vector by one..." << endl;
     mutexes[targetVar-1] = mutexes[targetVar]; //Shifts all mutexes "down" one
 }
 
 void variableAdjuster::adjustMutexContent(int targetVar, vector<vector<set<FactPair>>> &mutexes)
 {
-    //cout << "reducing variable index for " << targetVar << " in mutex content by one" << endl;
+    cout << "    Reducing variable index for " << targetVar << " in mutex content by one..." << endl;
 
     for (int i = 0; i < (int)mutexes.size(); i++)
     {
