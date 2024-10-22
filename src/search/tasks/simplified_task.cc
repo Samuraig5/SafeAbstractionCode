@@ -177,7 +177,7 @@ void SimplifiedTask::resizeVariableIDs(std::list<int> safeVarID)
         //cout << "Adjusting: " << target << endl;
 
         //Starting from the next higher variable (If we remove variable 3, we want to reduce all variables 4,5,6,... by one)
-        for (int i = target+1; i < (int)variables.size(); i++) {
+        for (int i = target+1; i < (int)variables.size()-offset; i++) {
             variableAdjuster::adjustOperators(i, operators);
             variableAdjuster::adjustInitialValues(i,  initial_state_values);
             variableAdjuster::adjustGoals(i,  goals);
