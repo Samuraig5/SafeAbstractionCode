@@ -7,6 +7,7 @@
 #include "utils/logging.h"
 #include "utils/system.h"
 #include "utils/timer.h"
+#include "safe_abstraction/compositor.h"
 #include "safe_abstraction/abstractor.h"
 #include "safe_abstraction/refiner.h"
 
@@ -38,8 +39,11 @@ int main(int argc, const char **argv) {
         utils::g_log << "done reading input!" << endl;
         TaskProxy task_proxy(*tasks::g_root_task);
         unit_cost = task_properties::is_unit_cost(task_proxy);
+        original_task = tasks::g_root_task;
 
-        std::cout << "============================ SAFE ABSTRACTION ==========================" << std::endl;
+        compositor compositor(original_task);
+
+        std::cout << std::endl << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
         bool foundSafeVariables = false;
