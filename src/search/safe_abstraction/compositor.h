@@ -20,7 +20,7 @@ std::shared_ptr<AbstractTask> compositedTask;
         compositor(std::shared_ptr<AbstractTask> abstractTask)
             : abstractTask(abstractTask), taskProxy(*abstractTask)
         {composite();}
-        std::shared_ptr<AbstractTask> getCompositedTask() {return taskProxy.getCompositedTask();}
+        std::shared_ptr<AbstractTask> getCompositedTask() {return compositedTask;}
 };
 
 #endif //COMPOSITOR_H
