@@ -2,10 +2,11 @@
 
 void compositor::composite()
 {
-    std::cout << std::endl << "============================ SAFE COMPOSITION ==========================" << std::endl;
+  	std::cout << "> Running Compositor" << std::endl;
 
     std::map<int, std::vector<int>> intermediateStates = getIntermediateStates();
     std::vector<std::pair<int, int>> c;
+    std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
 
     //std::cout << "Building 'c'..." << std::endl;
     for (int i = 0; i < intermediateStates.size()-1; i++)
@@ -22,19 +23,23 @@ void compositor::composite()
                     c.push_back(std::make_pair(j, val2));
 
     	    	    //std::cout << "c: " << i << " = " << val1 << ", " << j << " = " << val2 << std::endl;
-    		        getCompositeTargets(c);
+                    std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
+                    if (!newTargets.first.empty())
+                    {
+						compositeTargets.push_back(newTargets);
+                    }
     		        c.clear();
     	        }
     	    }
     	}
     }
 
-
-    std::cout << "========================================================================" << std::endl;
+    std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
 }
 
 std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vector<std::pair<int, int>> c)
 {
+    std::cout << "Generating composition targets..." << std::endl;
     std::set<int> A; //set of all actions whose effects include c
     std::set<int> B; //set of all actions whose preconditions include c
 
@@ -118,8 +123,8 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
         //std::cout << "Skipping: B is empty" << std::endl;
     	return std::make_pair(std::set<int>(), std::set<int>());
     }
-    std::cout << "A has " << A.size() << " actions" << std::endl;
-    std::cout << "B has " << B.size() << " actions" << std::endl << std::endl;
+    //std::cout << "A has " << A.size() << " actions" << std::endl;
+    //std::cout << "B has " << B.size() << " actions" << std::endl << std::endl;
 
     return std::make_pair(A, B);
 }
@@ -157,6 +162,6 @@ std::map<int, std::vector<int>> compositor::getIntermediateStates()
             }
         }
     }
-    std::cout << "Found " << intermediateStates.size() << " intermediate states" << std::endl;
+    //std::cout << "Found " << intermediateStates.size() << " intermediate states" << std::endl;
     return intermediateStates;
 }

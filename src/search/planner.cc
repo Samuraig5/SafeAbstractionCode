@@ -41,8 +41,6 @@ int main(int argc, const char **argv) {
         unit_cost = task_properties::is_unit_cost(task_proxy);
         original_task = tasks::g_root_task;
 
-        compositor compositor(original_task);
-
         std::cout << std::endl << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
@@ -59,6 +57,7 @@ int main(int argc, const char **argv) {
               below. The 'int' is just a placeholder for whatever data type we will
               need here in the end.
             */
+            compositor compositor(original_task);
             abstraction_hirarchy.emplace_back(original_task);
             std::list<int> safe_variables = abstraction_hirarchy.back().find_safe_variables();
 
