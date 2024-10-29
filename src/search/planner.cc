@@ -132,7 +132,6 @@ int main(int argc, const char **argv) {
       search_algorithm->print_statistics();
 
       utils::g_log << "Search time: " << search_timer << endl;
-      utils::g_log << "Total time: " << utils::g_timer << endl;
 
       ExitCode exitcode = search_algorithm->found_solution()
       ? ExitCode::SUCCESS
@@ -150,6 +149,8 @@ int main(int argc, const char **argv) {
       cout << endl;
       PlanManager plan_manager;
       plan_manager.save_plan(refinedPlan, task_proxy);
-
+      utils::g_log << "Search time: 0.0s" << endl;
     }
+
+    utils::g_log << "Total time: " << utils::g_timer << endl;
 }

@@ -15,7 +15,7 @@ std::shared_ptr<AbstractTask> compositedTask;
     private:
         void composite();
         std::map<int, std::vector<int>> getIntermediateStates();
-        std::vector<std::vector<OperatorProxy>> getCompositeTargets(std::map<int, int> c);
+        std::pair<std::set<int>, std::set<int>> getCompositeTargets(std::vector<std::pair<int, int>> c);
     public:
         compositor(std::shared_ptr<AbstractTask> abstractTask)
             : abstractTask(abstractTask), taskProxy(*abstractTask)

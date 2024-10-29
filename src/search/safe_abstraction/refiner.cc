@@ -18,7 +18,7 @@ Plan refiner::refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy)
         cout << "Intermediate Plan Length: " << plan.size() << endl;
     }
     cout << endl;
-    cout << "Took " << i+1 << " steps to refine plan" << endl;
+    cout << "Took " << i << " steps to refine plan" << endl;
     cout << "Refined Plan Length: " << plan.size() << endl;
     std::cout << "========================================================================" << std::endl;
     return plan;
