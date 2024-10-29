@@ -16,7 +16,9 @@ std::shared_ptr<AbstractTask> compositedTask;
         void composite();
         std::map<int, std::vector<int>> getIntermediateStates();
         std::pair<std::set<int>, std::set<int>> getCompositeTargets(std::vector<std::pair<int, int>> c);
-        std::vector<std::vector<OperationProxy>> generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)
+        std::vector<std::vector<OperatorProxy>> generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets);
+        std::vector<std::vector<OperatorProxy>> expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> remainingTargets);
+        bool isCompositeOperationExecutable(std::vector<OperatorProxy> compositeOperation);
     public:
         compositor(std::shared_ptr<AbstractTask> abstractTask)
             : abstractTask(abstractTask), taskProxy(*abstractTask)

@@ -7,8 +7,12 @@ void compositor::composite()
     std::map<int, std::vector<int>> intermediateStates = getIntermediateStates();
     std::vector<std::pair<int, int>> c;
     std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
+    int count = 0;
+    double averageA = 0;
+    double averageB = 0;
 
     //std::cout << "Building 'c'..." << std::endl;
+    std::cout << "Generating composition targets..." << std::endl;
     for (int i = 0; i < intermediateStates.size()-1; i++)
     {
         auto values1 = intermediateStates[i];
@@ -27,19 +31,97 @@ void compositor::composite()
                     if (!newTargets.first.empty())
                     {
 						compositeTargets.push_back(newTargets);
+                    	count++;
+                    	averageA += (newTargets.first.size() - averageA) / count;
+        				averageB += (newTargets.second.size() - averageB) / count;
                     }
     		        c.clear();
     	        }
     	    }
     	}
     }
-
     std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
+    std::cout << "Average length of A: " << averageA << std::endl;
+    std::cout << "Average length of B: " << averageB << std::endl;
+    generateCompositeOperations(compositeTargets);
+}
+
+std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)
+{
+	std::cout << "Generating composite operations..." << std::endl;
+	std::vector<std::vector<OperatorProxy>> compositionList;
+
+    for (auto compositeTarget : compositeTargets)
+    {
+    	for (auto A : compositeTarget.first)
+        {
+        	std::vector<OperatorProxy> compositeOperation;
+        	compositeOperation.push_back(taskProxy.get_operators()[A]);
+
+            auto expandedOperations = expandCompositeOperation(compositeOperation, compositeTarget.second);
+            compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
+        }
+    }
+    double sumOfLength = 0;
+    for (auto compositeOperation : compositionList)
+    {
+    	sumOfLength += compositeOperation.size();
+    }
+    std::cout << "Generated " << compositionList.size() << " composite operations of average length: " << sumOfLength/compositionList.size() << std::endl;
+    return compositionList;
+}
+
+std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> remainingTargets)
+{
+	std::vector<std::vector<OperatorProxy>>	compositionList;
+
+    for (auto b : remainingTargets)
+    {
+    	std::vector<OperatorProxy> expandedCompositeOperation = compositeOperation;
+        expandedCompositeOperation.push_back(taskProxy.get_operators()[b]);
+    	if (isCompositeOperationExecutable(expandedCompositeOperation))
+        {
+        	compositionList.push_back(expandedCompositeOperation);
+        	std::set<int> targets = remainingTargets;
+            targets.erase(b);
+        	auto expandedOperations = expandCompositeOperation(expandedCompositeOperation, targets);
+            compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
+        }
+    }
+
+    return compositionList;
+}
+
+bool compositor::isCompositeOperationExecutable(std::vector<OperatorProxy> compositeOperation)
+{
+    std::map<int, int> state;
+    for (int i = 0; i < compositeOperation.size(); i++)
+    {
+    	OperatorProxy op = compositeOperation[i];
+        for (auto pre : op.get_preconditions())
+        {
+        	auto preVar = pre.get_pair().var;
+        	auto preVal = pre.get_pair().value;
+            if (state.count(preVar) > 0)
+            {
+            	if (state[preVar] != preVal)
+                {
+                	return false;
+                }
+            }
+    	}
+   		for (auto post : op.get_effects())
+    	{
+    		auto postVar = post.get_fact().get_pair().var;
+    		auto postVal = post.get_fact().get_pair().value;
+        	state[postVar] = postVal;
+    	}
+    }
+    return true;
 }
 
 std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vector<std::pair<int, int>> c)
 {
-    std::cout << "Generating composition targets..." << std::endl;
     std::set<int> A; //set of all actions whose effects include c
     std::set<int> B; //set of all actions whose preconditions include c
 
