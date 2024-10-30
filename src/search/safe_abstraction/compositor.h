@@ -12,6 +12,11 @@ std::shared_ptr<AbstractTask> abstractTask;
 TaskProxy taskProxy;
 std::shared_ptr<AbstractTask> compositedTask;
 
+public:
+std::set<int> compositedOperatorIDs;
+std::vector<std::vector<OperatorProxy>> compositeOperators;
+std::map<OperatorProxy, std::vector<OperatorProxy>> decompositOperations;
+
     private:
         void composite();
         std::map<int, std::vector<int>> getIntermediateStates();

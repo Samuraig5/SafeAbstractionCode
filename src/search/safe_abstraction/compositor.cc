@@ -43,7 +43,7 @@ void compositor::composite()
     std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
     std::cout << "Average length of A: " << averageA << std::endl;
     std::cout << "Average length of B: " << averageB << std::endl;
-    generateCompositeOperations(compositeTargets);
+    compositeOperators = generateCompositeOperations(compositeTargets);
 }
 
 std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)
@@ -60,6 +60,8 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
 
             auto expandedOperations = expandCompositeOperation(compositeOperation, compositeTarget.second);
             compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
+
+            if (expandedOperations.size() > 1) {compositedOperatorIDs.insert(A);}
         }
     }
     double sumOfLength = 0;
@@ -68,6 +70,7 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     	sumOfLength += compositeOperation.size();
     }
     std::cout << "Generated " << compositionList.size() << " composite operations of average length: " << sumOfLength/compositionList.size() << std::endl;
+    std::cout << compositedOperatorIDs.size() << " out of  " << taskProxy.get_operators().size() << " operators have been replaced with compositions." << std::endl;
     return compositionList;
 }
 
@@ -81,6 +84,7 @@ std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std
         expandedCompositeOperation.push_back(taskProxy.get_operators()[b]);
     	if (isCompositeOperationExecutable(expandedCompositeOperation))
         {
+        	compositedOperatorIDs.insert(b);
         	compositionList.push_back(expandedCompositeOperation);
         	std::set<int> targets = remainingTargets;
             targets.erase(b);

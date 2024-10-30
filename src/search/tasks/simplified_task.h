@@ -3,6 +3,8 @@
 
 #include "root_task.h"
 #include "../safe_abstraction/variableAdjuster.h"
+#include "../safe_abstraction/compositor.h"
+
 
 #include <set>
 #include <vector>
@@ -25,6 +27,7 @@ private:
 
 public:
     SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int> safeVariables);
+    SimplifiedTask(const shared_ptr<RootTask> parent, compositor compositor);
 };
 
 }

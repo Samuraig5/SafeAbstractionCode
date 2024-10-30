@@ -3,6 +3,25 @@
 #include <algorithm>
 
 namespace tasks {
+SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor compositor) : RootTask(*parent)
+{
+  std::set<int> compositedOperators = compositor.compositedOperatorIDs;
+  std::vector<std::vector<OperatorProxy>> compositeOperators = compositor.compositeOperators;
+
+  //Clear the compositedOperators
+  for (auto op : compositedOperators)
+  {
+      operators[op].preconditions.clear();
+      operators[op].effects.clear();
+  }
+
+  for (auto op : compositeOperators)
+  {
+      //Insert new ExplicitOperator here... How?
+      //ExplicitOperator compositeOP = ExplicitOperator(op);
+  }
+}
+
 
 SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int> safeVariables) : RootTask(*parent) {
   if (safeVariables.empty()) {return;}
