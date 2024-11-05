@@ -129,6 +129,16 @@ ExplicitOperator::ExplicitOperator(istream &in, bool is_an_axiom, bool use_metri
     assert(cost >= 0);
 }
 
+ExplicitOperator::ExplicitOperator(vector<FactPair> preconditions, vector<ExplicitEffect> effects, int cost, string name, bool is_an_axiom)
+{
+    this->preconditions = std::move(preconditions);
+    this->effects = std::move(effects);
+    this->cost = cost;
+    this->name = name;
+    this->is_an_axiom = is_an_axiom;
+}
+
+
 void read_and_verify_version(istream &in) {
     int version;
     check_magic(in, "begin_version");

@@ -40,6 +40,7 @@ struct ExplicitOperator {
 
     void read_pre_post(istream &in);
     ExplicitOperator(istream &in, bool is_an_axiom, bool use_metric);
+    ExplicitOperator(vector<FactPair> preconditions, vector<ExplicitEffect> effects, int cost, string name, bool is_an_axiom);
 };
 
 

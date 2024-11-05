@@ -44,12 +44,12 @@ int main(int argc, const char **argv) {
         std::cout << std::endl << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
+        bool continiueAbstraction = true;
+        bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
         int numSafeVariables = 0;
         do
         {
-            foundSafeVariables = false;
-            original_task = tasks::g_root_task;
             /*
               Remo: Implement a procedure that takes this original task and returns
               the set of variables that can be safely abstracted away. This
@@ -57,13 +57,39 @@ int main(int argc, const char **argv) {
               below. The 'int' is just a placeholder for whatever data type we will
               need here in the end.
             */
+
+            // = COMPOSITOR ==
+            original_task = tasks::g_root_task;
             compositor compositor(original_task);
+            if (!compositor.compositeOperators.empty())
+            {
+                foundCompsitableOperators = true;
+            }
+            else
+            {
+                foundSafeVariables = false;
+                if (!foundSafeVariables)
+                {
+                    continiueAbstraction = false;
+                }
+            }
+
+            shared_ptr<tasks::RootTask> original_root_task =
+                dynamic_pointer_cast<tasks::RootTask>(original_task);
+            shared_ptr<tasks::SimplifiedTask> simplified_task =
+                make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
+            tasks::g_root_task = simplified_task;
+
+            // = ABSTRACTOR =
+            original_task = tasks::g_root_task;
             abstraction_hirarchy.emplace_back(original_task);
             std::list<int> safe_variables = abstraction_hirarchy.back().find_safe_variables();
 
             if (!safe_variables.empty())
             {
+                continiueAbstraction = true;
                 foundSafeVariables = true;
+                foundCompsitableOperators = false;
                 cout << "Found safe variable: ";
                 for (int safe_variable : safe_variables)
                 {
@@ -74,17 +100,17 @@ int main(int argc, const char **argv) {
             }
             else
             {
-                 cout << "No safe variables found!" << endl;
+                foundSafeVariables = false;
+                cout << "No safe variables found!" << endl;
             }
 
             /*
               Remo: We need this cast because the constructor of SimplifiedTask
               needs a RootTask as input, not an AbstractTask.
             */
-            shared_ptr<tasks::RootTask> original_root_task =
-                dynamic_pointer_cast<tasks::RootTask>(original_task);
-            shared_ptr<tasks::SimplifiedTask> simplified_task =
-                make_shared<tasks::SimplifiedTask>(original_root_task, safe_variables);
+            original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
+            simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, safe_variables);
+            tasks::g_root_task = simplified_task;
             /*
               Remo: It seems that the parts of the code that need access to the task
               read it directly from the global g_root_task variable. We set it to
@@ -94,12 +120,14 @@ int main(int argc, const char **argv) {
               for example, but I think we can run with this setup as long as it does
               not cause issues.
             */
-            tasks::g_root_task = simplified_task;
             task_proxy = abstraction_hirarchy.back().getTaskProxy();
+            if (foundCompsitableOperators && !foundSafeVariables)
+            {
+                std::cout << "> Found no compositable operators nor any safe variables" << endl;
+                continiueAbstraction = false;
+            }
         }
-        while (foundSafeVariables);
-        //How should we handle the case where there's only one variable left (and its abstractable)
-        //while (foundSafeVariables && tasks::g_root_task->get_num_variables() > 1);
+        while (continiueAbstraction);
 
         cout << endl;
         cout << "Abstracted " << numSafeVariables << " safe variables." << endl;

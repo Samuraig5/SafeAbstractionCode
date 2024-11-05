@@ -41,9 +41,12 @@ void compositor::composite()
     	}
     }
     std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
-    std::cout << "Average length of A: " << averageA << std::endl;
-    std::cout << "Average length of B: " << averageB << std::endl;
-    compositeOperators = generateCompositeOperations(compositeTargets);
+    if (compositeTargets.size() > 0)
+    {
+        std::cout << "Average length of A: " << averageA << std::endl;
+        std::cout << "Average length of B: " << averageB << std::endl;
+        compositeOperators = generateCompositeOperations(compositeTargets);
+    }
 }
 
 std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)
@@ -55,13 +58,15 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     {
     	for (auto A : compositeTarget.first)
         {
+            auto B = compositeTarget.second;
+            B.erase(A);
         	std::vector<OperatorProxy> compositeOperation;
         	compositeOperation.push_back(taskProxy.get_operators()[A]);
 
-            auto expandedOperations = expandCompositeOperation(compositeOperation, compositeTarget.second);
+            auto expandedOperations = expandCompositeOperation(compositeOperation, B);
             compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
 
-            if (expandedOperations.size() > 1) {compositedOperatorIDs.insert(A);}
+            if (expandedOperations.size() > 0) {compositedOperatorIDs.insert(A);} //If expanded chains are found mark A
         }
     }
     double sumOfLength = 0;

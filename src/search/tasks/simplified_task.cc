@@ -5,6 +5,8 @@
 namespace tasks {
 SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor compositor) : RootTask(*parent)
 {
+  cout << "> Simplifing Task (Composing Operators)" << endl;
+
   std::set<int> compositedOperators = compositor.compositedOperatorIDs;
   std::vector<std::vector<OperatorProxy>> compositeOperators = compositor.compositeOperators;
 
@@ -13,12 +15,51 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
   {
       operators[op].preconditions.clear();
       operators[op].effects.clear();
+      //std::cout << "Removed Operator " << operators[op].name << endl;
   }
 
-  for (auto op : compositeOperators)
+  for (auto CompOp : compositeOperators)
   {
-      //Insert new ExplicitOperator here... How?
-      //ExplicitOperator compositeOP = ExplicitOperator(op);
+      std::map<int, int> state;
+
+      vector<FactPair> preconditions;
+      vector<ExplicitEffect> effects;
+      int cost;
+      string name = "[CO:";
+      bool is_an_axiom = false;
+
+      for (auto op : CompOp)
+      {
+          for (auto precon : op.get_preconditions())
+          {
+              FactPair fact(precon.get_pair().var, precon.get_pair().value);
+              if (state.count(fact.var) > 0) { //Add precondition only if it isn't already covered by a previous operations
+                  preconditions.push_back(fact);
+              }
+          }
+
+          for (auto postcon : op.get_effects())
+          {
+              auto fact = postcon.get_fact().get_pair();
+              ExplicitEffect effect(fact.var, fact.value, vector<FactPair>(preconditions));
+              state[fact.var] = fact.value;
+          }
+          cost += op.get_cost();
+          name += op.get_name() + " > ";
+      }
+
+      for (auto postcon : state)
+      {
+          ExplicitEffect effect(postcon.first, postcon.second, vector<FactPair>());
+          effects.push_back(effect);
+      }
+
+      name += "]";
+
+      ExplicitOperator compositeOP = ExplicitOperator(preconditions, effects, cost, name, is_an_axiom);
+      operators.push_back(compositeOP);
+      //std::cout << name << endl;
+      //print_operators();
   }
 }
 
@@ -36,7 +77,7 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
         vector<FactPair> goals;
     */
 
-  	cout << "> Simplifing Task" << endl;
+  	cout << "> Simplifing Task (Abstracting Varialbes)" << endl;
 
 
     //print_problem()
