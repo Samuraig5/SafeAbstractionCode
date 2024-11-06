@@ -4,42 +4,33 @@ void compositor::composite()
 {
   	std::cout << "> Running Compositor" << std::endl;
 
-    std::map<int, std::vector<int>> intermediateStates = getIntermediateStates();
-    std::vector<std::pair<int, int>> c;
     std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
     int count = 0;
     double averageA = 0;
     double averageB = 0;
 
-    //std::cout << "Building 'c'..." << std::endl;
-    std::cout << "Generating composition targets..." << std::endl;
-    for (int i = 0; i < intermediateStates.size()-1; i++)
-    {
-        auto values1 = intermediateStates[i];
-        for (int j = i+1; j < intermediateStates.size(); j++)
-    	{
-    	    auto values2 = intermediateStates[j];
-    	    for (auto val1 : values1)
-    	    {
-    	        for (auto val2 : values2)
-    	        {
-                	c.push_back(std::make_pair(i, val1));
-                    c.push_back(std::make_pair(j, val2));
+    std::vector<std::vector<std::pair<int, int>>> C = getC();
 
-    	    	    //std::cout << "c: " << i << " = " << val1 << ", " << j << " = " << val2 << std::endl;
-                    std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
-                    if (!newTargets.first.empty())
-                    {
-						compositeTargets.push_back(newTargets);
-                    	count++;
-                    	averageA += (newTargets.first.size() - averageA) / count;
-        				averageB += (newTargets.second.size() - averageB) / count;
-                    }
-    		        c.clear();
-    	        }
-    	    }
+    for (auto c : C)
+    {
+		std::cout << "c: ";
+    	for (auto fact : c)
+    	{
+    		std::cout << taskProxy.get_variables()[fact.first].get_name() << " = " << fact.second << ", ";
     	}
+    	std::cout << std::endl;
+
+    	std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
+    	if (!newTargets.first.empty())
+    	{
+			compositeTargets.push_back(newTargets);
+    		count++;
+    		averageA += (newTargets.first.size() - averageA) / count;
+    		averageB += (newTargets.second.size() - averageB) / count;
+    	}
+    	c.clear();
     }
+
     std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
     if (compositeTargets.size() > 0)
     {
@@ -115,6 +106,7 @@ bool compositor::isCompositeOperationExecutable(std::vector<OperatorProxy> compo
             {
             	if (state[preVar] != preVal)
                 {
+               		std::cout << "Precondition violated in current state" << std::endl;
                 	return false;
                 }
             }
@@ -136,12 +128,14 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
 
     for (OperatorProxy op : taskProxy.get_operators())
     {
+    	std::cout << "Checking if " << op.get_name() << " should be in A" << std::endl;
         auto effects = op.get_effects();
         bool containsC = true;
 
         if (effects.size() < c.size() )
         {
         	containsC = false;
+        	//std::cout << op.get_name() << " doesn't contain c in its effects" << std::endl;
             continue; //Not enough effects to contain c
         }
         else
@@ -167,21 +161,31 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
                 }
             }
         }
-        if (containsC) { A.insert(op.get_id()); }
+        if (containsC)
+        {
+        	A.insert(op.get_id());
+        	std::cout << "Adding " << op.get_name() << " to A" << std::endl;
+        }
+    	else
+    	{
+    		//std::cout << op.get_name() << " does not contain c in its effects" << std::endl;
+    	}
     }
     if (A.size() == 0) {
-    	//std::cout << "Skipping: A is empty" << std::endl;
+    	std::cout << "Skipping: A is empty" << std::endl;
     	return std::make_pair(std::set<int>(), std::set<int>());
     }
 
     for (OperatorProxy op : taskProxy.get_operators())
     {
+        std::cout << "Checking if " << op.get_name() << " should be in B" << std::endl;
         auto preconditions = op.get_preconditions();
         bool containsC = true;
 
         if (preconditions.size() < c.size() )
         {
         	containsC = false;
+        	//std::cout << op.get_name() << " doesn't contain c in its preconditions" << std::endl;
             continue; //Not enough effects to contain c
         }
         else
@@ -207,52 +211,69 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
                 }
             }
         }
-        if (containsC) { B.insert(op.get_id()); }
+        if (containsC)
+        {
+        	B.insert(op.get_id());
+        	std::cout << "Adding " << op.get_name() << " to B" << std::endl;
+        }
+        else
+        {
+        	//std::cout << op.get_name() << " does not contain c in its preconditions" << std::endl;
+        }
     }
     if (B.size() == 0)
     {
-        //std::cout << "Skipping: B is empty" << std::endl;
+        std::cout << "Skipping: B is empty" << std::endl;
     	return std::make_pair(std::set<int>(), std::set<int>());
     }
-    //std::cout << "A has " << A.size() << " actions" << std::endl;
-    //std::cout << "B has " << B.size() << " actions" << std::endl << std::endl;
+    std::cout << "A has " << A.size() << " actions" << std::endl;
+    std::cout << "B has " << B.size() << " actions" << std::endl << std::endl;
 
     return std::make_pair(A, B);
 }
 
-std::map<int, std::vector<int>> compositor::getIntermediateStates()
+std::vector<std::vector<std::pair<int, int>>> compositor::getC()
 {
-    std::cout << "Getting intermediate states..." << std::endl;
+    std::cout << "Getting c..." << std::endl;
+
+    std::vector<std::vector<std::pair<int, int>>> possibleC;
+
+    for (int i = 0; i < taskProxy.get_variables().size()-1; i++)
+    {
+        for (int j = i+1; j < taskProxy.get_variables().size(); j++)
+    	{
+    		for (int ii = 0; ii < taskProxy.get_variables()[i].get_domain_size(); ii++)
+    	    {
+    			for (int jj = 0; jj < taskProxy.get_variables()[j].get_domain_size(); jj++)
+    			{
+    	        	std::vector<std::pair<int, int>> c;
+    	        	c.push_back(std::make_pair(i, ii));
+    	        	c.push_back(std::make_pair(j, jj));
+    	        	possibleC.push_back(c);
+    	        }
+    	    }
+    	}
+    }
 
     std::vector<int> initialStates = abstractTask->get_initial_state_values();
-
-    std::map<int, std::vector<int>> intermediateStates;
     GoalsProxy goalFacts = taskProxy.get_goals();
-    for (auto variable : taskProxy.get_variables())
-    {
-        bool hasGoal = false;
-        int goalValue;
-        for (auto goal : goalFacts)
-        {
-            if (goal.get_variable().get_id() == variable.get_id())
-            {
-                goalValue = goal.get_value();
-                hasGoal = true;
-                break;
-            }
-        }
 
-        for (int i = 0; i < variable.get_domain_size(); i++)
-        {
-            if (initialStates[variable.get_id()] != i)
-            {
-                if (!hasGoal || goalValue != i)
-                {
-                    intermediateStates[variable.get_id()].push_back(i);
-                }
-            }
-        }
-    }
-    //std::cout << "Found " << intermediateStates.size() << " intermediate states" << std::endl;
-    return intermediateStates;
+    std::vector<std::vector<std::pair<int, int>>> C;
+	for (auto c : possibleC)
+	{
+		bool trueInitially = true;
+		bool trueInGoal = true;
+		for (auto fact : c)
+		{
+			if (initialStates[fact.first] != fact.second) {trueInitially = false;}
+        	for (auto goal : goalFacts){
+            	if (goal.get_variable().get_id() != fact.first){ } //trueInGoal = false; }
+            	else if (goal.get_value() != fact.second){ trueInGoal = false; }
+        	}
+		}
+		if (!trueInitially && !trueInGoal) {C.push_back(c);}
+	}
+
+    //std::cout << "Found " << C.size() << " c sets" << std::endl;
+    return C;
 }

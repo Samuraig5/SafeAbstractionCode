@@ -19,7 +19,7 @@ std::map<OperatorProxy, std::vector<OperatorProxy>> decompositOperations;
 
     private:
         void composite();
-        std::map<int, std::vector<int>> getIntermediateStates();
+        std::vector<std::vector<std::pair<int, int>>> getC();
         std::pair<std::set<int>, std::set<int>> getCompositeTargets(std::vector<std::pair<int, int>> c);
         std::vector<std::vector<OperatorProxy>> generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets);
         std::vector<std::vector<OperatorProxy>> expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> remainingTargets);

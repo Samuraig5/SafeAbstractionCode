@@ -93,7 +93,7 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
 
     //print_variables();
     //print_mutexes();
-    //print_operators();
+    print_operators();
 }
 
 void SimplifiedTask::removeVariables(std::list<int> safeVarID)
