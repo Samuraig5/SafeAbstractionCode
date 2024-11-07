@@ -4,6 +4,12 @@ void compositor::composite()
 {
   	std::cout << "> Running Compositor" << std::endl;
 
+    if (taskProxy.get_variables().size() == 0)
+    {
+    	std::cout << "Task provided has no remaining variables" << std::endl;
+        return;
+    }
+
     std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
     int count = 0;
     double averageA = 0;
@@ -13,12 +19,14 @@ void compositor::composite()
 
     for (auto c : C)
     {
+		/*
 		std::cout << "c: ";
     	for (auto fact : c)
     	{
     		std::cout << taskProxy.get_variables()[fact.first].get_name() << " = " << fact.second << ", ";
     	}
     	std::cout << std::endl;
+		 */
 
     	std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
     	if (!newTargets.first.empty())
@@ -106,7 +114,7 @@ bool compositor::isCompositeOperationExecutable(std::vector<OperatorProxy> compo
             {
             	if (state[preVar] != preVal)
                 {
-               		std::cout << "Precondition violated in current state" << std::endl;
+               		//std::cout << "Precondition violated in current state" << std::endl;
                 	return false;
                 }
             }
@@ -128,7 +136,7 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
 
     for (OperatorProxy op : taskProxy.get_operators())
     {
-    	std::cout << "Checking if " << op.get_name() << " should be in A" << std::endl;
+    	//std::cout << "Checking if " << op.get_name() << " should be in A" << std::endl;
         auto effects = op.get_effects();
         bool containsC = true;
 
@@ -164,7 +172,7 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
         if (containsC)
         {
         	A.insert(op.get_id());
-        	std::cout << "Adding " << op.get_name() << " to A" << std::endl;
+        	//std::cout << "Adding " << op.get_name() << " to A" << std::endl;
         }
     	else
     	{
@@ -172,13 +180,13 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
     	}
     }
     if (A.size() == 0) {
-    	std::cout << "Skipping: A is empty" << std::endl;
+    	//std::cout << "Skipping: A is empty" << std::endl;
     	return std::make_pair(std::set<int>(), std::set<int>());
     }
 
     for (OperatorProxy op : taskProxy.get_operators())
     {
-        std::cout << "Checking if " << op.get_name() << " should be in B" << std::endl;
+        //std::cout << "Checking if " << op.get_name() << " should be in B" << std::endl;
         auto preconditions = op.get_preconditions();
         bool containsC = true;
 
@@ -214,7 +222,7 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
         if (containsC)
         {
         	B.insert(op.get_id());
-        	std::cout << "Adding " << op.get_name() << " to B" << std::endl;
+        	//std::cout << "Adding " << op.get_name() << " to B" << std::endl;
         }
         else
         {
@@ -223,11 +231,11 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
     }
     if (B.size() == 0)
     {
-        std::cout << "Skipping: B is empty" << std::endl;
+        //std::cout << "Skipping: B is empty" << std::endl;
     	return std::make_pair(std::set<int>(), std::set<int>());
     }
-    std::cout << "A has " << A.size() << " actions" << std::endl;
-    std::cout << "B has " << B.size() << " actions" << std::endl << std::endl;
+    //std::cout << "A has " << A.size() << " actions" << std::endl;
+    //std::cout << "B has " << B.size() << " actions" << std::endl << std::endl;
 
     return std::make_pair(A, B);
 }
@@ -254,6 +262,8 @@ std::vector<std::vector<std::pair<int, int>>> compositor::getC()
     	    }
     	}
     }
+
+    std::cout << "Removing invalid c..." << std::endl;
 
     std::vector<int> initialStates = abstractTask->get_initial_state_values();
     GoalsProxy goalFacts = taskProxy.get_goals();

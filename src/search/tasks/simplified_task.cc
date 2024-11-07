@@ -6,6 +6,7 @@ namespace tasks {
 SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor compositor) : RootTask(*parent)
 {
   cout << "> Simplifing Task (Composing Operators)" << endl;
+  //print_operators();
 
   std::set<int> compositedOperators = compositor.compositedOperatorIDs;
   std::vector<std::vector<OperatorProxy>> compositeOperators = compositor.compositeOperators;
@@ -23,6 +24,7 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
       std::map<int, int> state;
 
       vector<FactPair> preconditions;
+      set<FactPair> preconditionsSet;
       vector<ExplicitEffect> effects;
       int cost;
       string name = "[CO:";
@@ -33,20 +35,21 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
           for (auto precon : op.get_preconditions())
           {
               FactPair fact(precon.get_pair().var, precon.get_pair().value);
-              if (state.count(fact.var) > 0) { //Add precondition only if it isn't already covered by a previous operations
-                  preconditions.push_back(fact);
+              if (state.count(fact.var) == 0) { //Add precondition only if it isn't already covered by a previous operations
+                  preconditionsSet.insert(fact);
               }
           }
 
           for (auto postcon : op.get_effects())
           {
               auto fact = postcon.get_fact().get_pair();
-              ExplicitEffect effect(fact.var, fact.value, vector<FactPair>(preconditions));
               state[fact.var] = fact.value;
           }
           cost += op.get_cost();
           name += op.get_name() + " > ";
       }
+
+	  std::copy(preconditionsSet.begin(), preconditionsSet.end(), std::back_inserter(preconditions));
 
       for (auto postcon : state)
       {
@@ -59,8 +62,8 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
       ExplicitOperator compositeOP = ExplicitOperator(preconditions, effects, cost, name, is_an_axiom);
       operators.push_back(compositeOP);
       //std::cout << name << endl;
-      //print_operators();
   }
+  //print_operators();
 }
 
 
@@ -91,9 +94,11 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
     resizeVariableIDs(safeVariables);
     removeVariables(safeVariables);
 
+    cout << variables.size() << " variables remain." << endl;
+
     //print_variables();
     //print_mutexes();
-    print_operators();
+    //print_operators();
 }
 
 void SimplifiedTask::removeVariables(std::list<int> safeVarID)

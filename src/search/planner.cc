@@ -74,10 +74,8 @@ int main(int argc, const char **argv) {
                 }
             }
 
-            shared_ptr<tasks::RootTask> original_root_task =
-                dynamic_pointer_cast<tasks::RootTask>(original_task);
-            shared_ptr<tasks::SimplifiedTask> simplified_task =
-                make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
+            shared_ptr<tasks::RootTask> original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
+            shared_ptr<tasks::SimplifiedTask> simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
             tasks::g_root_task = simplified_task;
 
             // = ABSTRACTOR =
@@ -121,7 +119,12 @@ int main(int argc, const char **argv) {
               not cause issues.
             */
             task_proxy = abstraction_hirarchy.back().getTaskProxy();
-            if (foundCompsitableOperators && !foundSafeVariables)
+            if (task_proxy.get_variables().size() == 0)
+            {
+                std::cout << "> Problem was fully solved by abstraction" << endl;
+                continiueAbstraction = false;
+            }
+            else if (foundCompsitableOperators && !foundSafeVariables)
             {
                 std::cout << "> Found no compositable operators nor any safe variables" << endl;
                 continiueAbstraction = false;
