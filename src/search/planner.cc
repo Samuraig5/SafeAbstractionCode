@@ -31,7 +31,7 @@ int main(int argc, const char **argv) {
     */
     shared_ptr<AbstractTask> original_task;
 
-    vector<abstractor> abstraction_hirarchy;
+    vector<pair<compositor, abstractor>> abstraction_hirarchy;
 
     if (static_cast<string>(argv[1]) != "--help") {
         utils::g_log << "reading input..." << endl;
@@ -80,8 +80,8 @@ int main(int argc, const char **argv) {
 
             // = ABSTRACTOR =
             original_task = tasks::g_root_task;
-            abstraction_hirarchy.emplace_back(original_task);
-            std::list<int> safe_variables = abstraction_hirarchy.back().find_safe_variables();
+            abstraction_hirarchy.emplace_back(make_pair(compositor, abstractor(original_task)));
+            std::list<int> safe_variables = abstraction_hirarchy.back().second.find_safe_variables();
 
             if (!safe_variables.empty())
             {
@@ -118,7 +118,7 @@ int main(int argc, const char **argv) {
               for example, but I think we can run with this setup as long as it does
               not cause issues.
             */
-            task_proxy = abstraction_hirarchy.back().getTaskProxy();
+            task_proxy = abstraction_hirarchy.back().second.getTaskProxy();
             if (task_proxy.get_variables().size() == 0)
             {
                 std::cout << "> Problem was fully solved by abstraction" << endl;
@@ -137,7 +137,7 @@ int main(int argc, const char **argv) {
         cout << task_proxy.get_variables().size() << " variables remain." << endl;
         std::cout << "========================================================================" << std::endl;
     }
-    TaskProxy task_proxy = abstraction_hirarchy.back().getTaskProxy();
+    TaskProxy task_proxy = abstraction_hirarchy.back().second.getTaskProxy();
     cout << endl;
     /*
     Remo: Expand plan for the simplified task to a plan for the original task

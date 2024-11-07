@@ -1,7 +1,7 @@
 #include "refiner.h"
 #include "../task_proxy.h"
 
-Plan refiner::refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy)
+Plan refiner::refine_plan(Plan plan, vector<pair<compositor, abstractor>> &abstraction_hirarchy)
 {
     std::cout << "=============================== REFINEMNET =============================" << std::endl;
 
@@ -10,18 +10,55 @@ Plan refiner::refine_plan(Plan plan, vector<abstractor> &abstraction_hirarchy)
 	int i = 0;
 	std::reverse(abstraction_hirarchy.begin(), abstraction_hirarchy.end());
 
+    if (abstraction_hirarchy.size() > 0) { printPlan(plan, abstraction_hirarchy[0].second.getTaskProxy()); }
+
     for (auto step : abstraction_hirarchy)
     {
+        printPlan(plan, step.second.getTaskProxy());
+
         cout << "> Refining Step: " << i << endl;
         i++;
-        refiner::refine_step(plan, step);
+
+        cout << "Inserting missing Operators..." << endl;
+        refiner::refine_step(plan, step.second);
+
+        cout << "Decomposing Operators..." << endl;
+        refiner::decompose_step(plan, step.first);
+
         cout << "Intermediate Plan Length: " << plan.size() << endl;
+        printPlan(plan, step.second.getTaskProxy());
+
     }
     cout << endl;
     cout << "Took " << i << " steps to refine plan" << endl;
     cout << "Refined Plan Length: " << plan.size() << endl;
     std::cout << "========================================================================" << std::endl;
     return plan;
+}
+
+void refiner::decompose_step(Plan &plan, compositor &compositor)
+{
+    std::map<int, std::vector<OperatorProxy>> decompositOperations = compositor.decompositOperations;
+
+    if (decompositOperations.empty()) {
+        std::cout << "Nothing to decompose" << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < plan.size(); i++)
+    {
+        int opID = plan[i].get_index();
+        if (decompositOperations.count(opID) > 0)
+        {
+            plan.erase(plan.begin() + i);
+            int offset = i;
+            for (auto operatorProxy : decompositOperations[opID])
+            {
+                plan.insert(plan.begin()+offset, OperatorID(operatorProxy.get_id()));
+                offset++;
+            }
+        }
+    }
 }
 
 void refiner::refine_step(Plan &plan, abstractor &abstractor)
@@ -112,7 +149,7 @@ void refiner::refine_step(Plan &plan, abstractor &abstractor)
 
 void refiner::insertMissingOperations(Plan &plan, abstractor &abstractor, int insertionIndex , int varID, int startVal, int endVal)
 {
-    //cout << "Inserting new opertaion" << endl;
+    //cout << "Inserting new opertaion at position " << insertionIndex << endl;
     freeDTG freeDTG = *abstractor.find_freeDTG_by_variable(varID);
     //cout << "  Searching for path" << endl;
     std::vector<int> newOperations = freeDTG.getPath(startVal, endVal);
@@ -120,7 +157,33 @@ void refiner::insertMissingOperations(Plan &plan, abstractor &abstractor, int in
     std::reverse(newOperations.begin(), newOperations.end());
     for (int opID : newOperations)
     {
-        //cout << "  Inserting operation: " << opID << endl;
+        //cout << "  Inserting operation: " << abstractor.getTaskProxy().get_operators()[opID].get_name() << endl;
         plan.insert(plan.begin()+insertionIndex, OperatorID(opID));
+    }
+}
+
+void refiner::printPlan(Plan &plan, TaskProxy task_proxy)
+{
+    auto operators = task_proxy.get_operators();
+    if (plan.empty()) { cout << "Empty Plan" << endl; return; }
+    cout << "Current Plan:" << endl;
+    for (auto step : plan)
+    {
+        auto op = operators[step];
+        cout << "    " << op.get_name() << endl;
+
+        cout << "        " << "Precon: ";
+        for (auto precon : op.get_preconditions())
+        {
+            cout << precon.get_variable().get_name() << " = " << precon.get_value() << ", ";
+        }
+        cout << endl;
+
+        cout << "        " << "Postcon: ";
+        for (auto postcon : op.get_effects())
+        {
+            cout << postcon.get_fact().get_variable().get_name() << " = " << postcon.get_fact().get_value() << ", ";
+        }
+        cout << endl;
     }
 }

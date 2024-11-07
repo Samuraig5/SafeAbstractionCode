@@ -46,6 +46,14 @@ void compositor::composite()
         std::cout << "Average length of B: " << averageB << std::endl;
         compositeOperators = generateCompositeOperations(compositeTargets);
     }
+
+    std::cout << "Creating decomposition map..." << std::endl;
+    int newIndex = taskProxy.get_variables().size();
+    for (auto c : compositeOperators)
+    {
+        decompositOperations[newIndex] = c;
+        newIndex++;
+    }
 }
 
 std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)
@@ -114,9 +122,12 @@ bool compositor::isCompositeOperationExecutable(std::vector<OperatorProxy> compo
             {
             	if (state[preVar] != preVal)
                 {
-               		//std::cout << "Precondition violated in current state" << std::endl;
                 	return false;
                 }
+            }
+            else
+            {
+                state[preVar] = preVal;
             }
     	}
    		for (auto post : op.get_effects())
