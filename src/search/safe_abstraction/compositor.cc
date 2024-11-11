@@ -44,15 +44,15 @@ void compositor::composite()
     {
         std::cout << "Average length of A: " << averageA << std::endl;
         std::cout << "Average length of B: " << averageB << std::endl;
-        compositeOperators = generateCompositeOperations(compositeTargets);
-    }
+        std::vector<std::vector<OperatorProxy>> compositeChain = generateCompositeOperations(compositeTargets);
 
-    std::cout << "Creating decomposition map..." << std::endl;
-    int newIndex = taskProxy.get_variables().size();
-    for (auto c : compositeOperators)
-    {
-        decompositOperations[newIndex] = c;
-        newIndex++;
+        std::cout << "Creating decomposition map..." << std::endl;
+    	int newIndex = taskProxy.get_variables().size();
+    	for (auto c : compositeChain)
+    	{
+        	decompositOperations[newIndex] = c;
+        	newIndex++;
+    	}
     }
 }
 
@@ -66,11 +66,12 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     	for (auto A : compositeTarget.first)
         {
             auto B = compositeTarget.second;
-            B.erase(A);
+
         	std::vector<OperatorProxy> compositeOperation;
         	compositeOperation.push_back(taskProxy.get_operators()[A]);
 
-            auto expandedOperations = expandCompositeOperation(compositeOperation, B);
+            tasks::ExplicitOperator emptyTask = tasks::ExplicitOperator(std::vector<FactPair>(), vector<tasks::ExplicitEffect>(), 0, "", false);
+            auto expandedOperations = expandCompositeOperation(compositeOperation, B, emptyTask);
             compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
 
             if (expandedOperations.size() > 0) {compositedOperatorIDs.insert(A);} //If expanded chains are found mark A
@@ -86,21 +87,24 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     return compositionList;
 }
 
-std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> remainingTargets)
+std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> targets, tasks::ExplicitOperator parentOperator)
 {
 	std::vector<std::vector<OperatorProxy>>	compositionList;
 
-    for (auto b : remainingTargets)
+    for (auto b : targets)
     {
     	std::vector<OperatorProxy> expandedCompositeOperation = compositeOperation;
         expandedCompositeOperation.push_back(taskProxy.get_operators()[b]);
     	if (isCompositeOperationExecutable(expandedCompositeOperation))
         {
+        	tasks::ExplicitOperator newOperator = createExplicitOperator(expandedCompositeOperation);
+            if (areIdenticalOperators(parentOperator, newOperator)) {return compositionList;}
+
+            compositeOperators.push_back(newOperator);
         	compositedOperatorIDs.insert(b);
         	compositionList.push_back(expandedCompositeOperation);
-        	std::set<int> targets = remainingTargets;
-            targets.erase(b);
-        	auto expandedOperations = expandCompositeOperation(expandedCompositeOperation, targets);
+
+        	auto expandedOperations = expandCompositeOperation(expandedCompositeOperation, targets, newOperator);
             compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
         }
     }
@@ -139,6 +143,90 @@ bool compositor::isCompositeOperationExecutable(std::vector<OperatorProxy> compo
     }
     return true;
 }
+
+tasks::ExplicitOperator compositor::createExplicitOperator(std::vector<OperatorProxy> compOp)
+{
+      std::map<int, int> state;
+
+      vector<FactPair> preconditions;
+      set<FactPair> preconditionsSet;
+      vector<tasks::ExplicitEffect> effects;
+      int cost;
+      string name = "[CO:";
+      bool is_an_axiom = false;
+
+      for (auto op : compOp)
+      {
+          for (auto precon : op.get_preconditions())
+          {
+              FactPair fact(precon.get_pair().var, precon.get_pair().value);
+              if (state.count(fact.var) == 0) { //Add precondition only if it isn't already covered by a previous operations
+                  preconditionsSet.insert(fact);
+              }
+          }
+
+          for (auto postcon : op.get_effects())
+          {
+              auto fact = postcon.get_fact().get_pair();
+              state[fact.var] = fact.value;
+          }
+          cost += op.get_cost();
+          name += op.get_name() + " > ";
+      }
+
+	  std::copy(preconditionsSet.begin(), preconditionsSet.end(), std::back_inserter(preconditions));
+
+      for (auto postcon : state)
+      {
+          tasks::ExplicitEffect effect(postcon.first, postcon.second, vector<FactPair>());
+          effects.push_back(effect);
+      }
+
+      name += "]";
+
+      tasks::ExplicitOperator compositeOP = tasks::ExplicitOperator(preconditions, effects, cost, name, is_an_axiom);
+      return compositeOP;
+}
+
+bool compositor::areIdenticalOperators(tasks::ExplicitOperator a, tasks::ExplicitOperator b)
+{
+	if (a.preconditions.size() != b.preconditions.size()) {return false;}
+    if (a.effects.size() != b.effects.size()) {return false;}
+
+    auto aPreCons = a.preconditions;
+    auto bPreCons = b.preconditions;
+    for (auto aPre : aPreCons)
+    {
+    	bool matched = false;
+        for (auto bPre : bPreCons)
+        {
+        	if (aPre.var == bPre.var && aPre.value == bPre.value)
+        	{
+                matched = true;
+        		break;
+            }
+        }
+        if (!matched) {return false;}
+    }
+
+    auto aPostCons = a.effects;
+    auto bPostCons = b.effects;
+    for (auto aPost : aPostCons)
+    {
+    	bool matched = false;
+        for (auto bPost : bPostCons)
+        {
+        	if (aPost.fact.var == bPost.fact.var && aPost.fact.value == bPost.fact.value)
+        	{
+                matched = true;
+        		break;
+            }
+        }
+        if (!matched) {return false;}
+    }
+    return true;
+}
+
 
 std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vector<std::pair<int, int>> c)
 {

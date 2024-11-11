@@ -9,8 +9,6 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
   print_operators();
 
   std::set<int> compositedOperators = compositor.compositedOperatorIDs;
-  std::vector<std::vector<OperatorProxy>> compositeOperators = compositor.compositeOperators;
-
   //Clear the compositedOperators
   for (auto op : compositedOperators)
   {
@@ -19,49 +17,9 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
       //std::cout << "Removed Operator " << operators[op].name << endl;
   }
 
-  for (auto CompOp : compositeOperators)
+  for (auto CompOp : compositor.compositeOperators)
   {
-      std::map<int, int> state;
-
-      vector<FactPair> preconditions;
-      set<FactPair> preconditionsSet;
-      vector<ExplicitEffect> effects;
-      int cost;
-      string name = "[CO:";
-      bool is_an_axiom = false;
-
-      for (auto op : CompOp)
-      {
-          for (auto precon : op.get_preconditions())
-          {
-              FactPair fact(precon.get_pair().var, precon.get_pair().value);
-              if (state.count(fact.var) == 0) { //Add precondition only if it isn't already covered by a previous operations
-                  preconditionsSet.insert(fact);
-              }
-          }
-
-          for (auto postcon : op.get_effects())
-          {
-              auto fact = postcon.get_fact().get_pair();
-              state[fact.var] = fact.value;
-          }
-          cost += op.get_cost();
-          name += op.get_name() + " > ";
-      }
-
-	  std::copy(preconditionsSet.begin(), preconditionsSet.end(), std::back_inserter(preconditions));
-
-      for (auto postcon : state)
-      {
-          ExplicitEffect effect(postcon.first, postcon.second, vector<FactPair>());
-          effects.push_back(effect);
-      }
-
-      name += "]";
-
-      ExplicitOperator compositeOP = ExplicitOperator(preconditions, effects, cost, name, is_an_axiom);
-      operators.push_back(compositeOP);
-      //std::cout << name << endl;
+      operators.push_back(CompOp);
   }
   print_operators();
 }
