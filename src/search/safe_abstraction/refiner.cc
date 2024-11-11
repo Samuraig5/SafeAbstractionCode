@@ -60,12 +60,12 @@ void refiner::decomposeCompositeOperator(Plan &plan, compositor &compositor, int
     int opID = plan[insertionIndex].get_index();
     int offset = insertionIndex;
 
-    cout << "Decomposing Operator " << opID << " at position " << insertionIndex << endl;
+    //cout << "Decomposing Operator " << opID << " at position " << insertionIndex << endl;
 
 	plan.erase(plan.begin() + insertionIndex);
 	for (auto operatorProxy : compositor.decompositOperations[opID])
 	{
-        cout << "Inserting Operator " << operatorProxy.get_name() << " at position " << offset << endl;
+        //cout << "Inserting Operator " << operatorProxy.get_name() << " at position " << offset << endl;
     	plan.insert(plan.begin()+offset, OperatorID(operatorProxy.get_id()));
     	offset++;
 	}

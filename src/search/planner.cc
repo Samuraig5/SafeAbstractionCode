@@ -47,8 +47,10 @@ int main(int argc, const char **argv) {
         bool continiueAbstraction = true;
         bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
-        int numSafeVariables = 0;
         int step = 0;
+        int numSafeVariables = 0;
+        int numOperatorsInOriginalTask = task_proxy.get_operators().size();
+        int numCompositeOperators = 0;
         do
         {
         	cout << endl;
@@ -87,6 +89,7 @@ int main(int argc, const char **argv) {
             compositor compositor(original_task);
             if (!compositor.compositeOperators.empty())
             {
+            	numCompositeOperators += compositor.compositeOperators.size();
                 foundCompsitableOperators = true;
                 foundSafeVariables = false;
             }
@@ -112,8 +115,11 @@ int main(int argc, const char **argv) {
         while (continiueAbstraction);
 
         cout << endl;
+        cout << "Abstraction took " << step << " steps" << endl;
         cout << "Abstracted " << numSafeVariables << " safe variables." << endl;
         cout << task_proxy.get_variables().size() << " variables remain." << endl;
+        cout << "Created " << numCompositeOperators << " composite operators." << endl;
+        cout << "Original task had: " << numOperatorsInOriginalTask << " operators" << endl;
         std::cout << "========================================================================" << std::endl;
     }
     TaskProxy task_proxy = TaskProxy(*tasks::g_root_task);
