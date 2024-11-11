@@ -31,7 +31,7 @@ int main(int argc, const char **argv) {
     */
     shared_ptr<AbstractTask> original_task;
 
-    vector<pair<compositor, abstractor>> abstraction_hirarchy;
+    vector<pair<abstractor, compositor>> abstraction_hirarchy;
 
     if (static_cast<string>(argv[1]) != "--help") {
         utils::g_log << "reading input..." << endl;
@@ -48,44 +48,20 @@ int main(int argc, const char **argv) {
         bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
         int numSafeVariables = 0;
+        int step = 0;
         do
         {
-            /*
-              Remo: Implement a procedure that takes this original task and returns
-              the set of variables that can be safely abstracted away. This
-              information is then past on to the constructor of SimplifiedTask
-              below. The 'int' is just a placeholder for whatever data type we will
-              need here in the end.
-            */
-
-            // = COMPOSITOR ==
-            original_task = tasks::g_root_task;
-            compositor compositor(original_task);
-            if (!compositor.compositeOperators.empty())
-            {
-                foundCompsitableOperators = true;
-            }
-            else
-            {
-                foundSafeVariables = false;
-                if (!foundSafeVariables)
-                {
-                    continiueAbstraction = false;
-                }
-            }
-
-            shared_ptr<tasks::RootTask> original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
-            shared_ptr<tasks::SimplifiedTask> simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
-            tasks::g_root_task = simplified_task;
+        	cout << endl;
+        	cout << "=> Step: " << step << endl;
+            step++;
 
             // = ABSTRACTOR =
             original_task = tasks::g_root_task;
-            abstraction_hirarchy.emplace_back(make_pair(compositor, abstractor(original_task)));
-            std::list<int> safe_variables = abstraction_hirarchy.back().second.find_safe_variables();
+            abstractor abstractor(original_task);
+            std::list<int> safe_variables = abstractor.find_safe_variables();
 
             if (!safe_variables.empty())
             {
-                continiueAbstraction = true;
                 foundSafeVariables = true;
                 foundCompsitableOperators = false;
                 cout << "Found safe variable: ";
@@ -102,29 +78,32 @@ int main(int argc, const char **argv) {
                 cout << "No safe variables found!" << endl;
             }
 
-            /*
-              Remo: We need this cast because the constructor of SimplifiedTask
-              needs a RootTask as input, not an AbstractTask.
-            */
-            original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
-            simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, safe_variables);
+            shared_ptr<tasks::RootTask> original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
+            shared_ptr<tasks::SimplifiedTask> simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, safe_variables);
             tasks::g_root_task = simplified_task;
-            /*
-              Remo: It seems that the parts of the code that need access to the task
-              read it directly from the global g_root_task variable. We set it to
-              the simplified task we just created so that all parts access it
-              directly. A potentially cleaner solution would be to implement the
-              simplification as a task transformation akin to cost_adapted_task.*
-              for example, but I think we can run with this setup as long as it does
-              not cause issues.
-            */
-            task_proxy = abstraction_hirarchy.back().second.getTaskProxy();
+
+            // = COMPOSITOR ==
+            original_task = tasks::g_root_task;
+            compositor compositor(original_task);
+            if (!compositor.compositeOperators.empty())
+            {
+                foundCompsitableOperators = true;
+                foundSafeVariables = false;
+            }
+
+            original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
+            simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
+            tasks::g_root_task = simplified_task;
+
+            abstraction_hirarchy.push_back(make_pair(abstractor, compositor));
+
+            task_proxy = TaskProxy(*tasks::g_root_task);
             if (task_proxy.get_variables().size() == 0)
             {
                 std::cout << "> Problem was fully solved by abstraction" << endl;
                 continiueAbstraction = false;
             }
-            else if (foundCompsitableOperators && !foundSafeVariables)
+            else if (!foundCompsitableOperators && !foundSafeVariables)
             {
                 std::cout << "> Found no compositable operators nor any safe variables" << endl;
                 continiueAbstraction = false;
@@ -137,7 +116,7 @@ int main(int argc, const char **argv) {
         cout << task_proxy.get_variables().size() << " variables remain." << endl;
         std::cout << "========================================================================" << std::endl;
     }
-    TaskProxy task_proxy = abstraction_hirarchy.back().second.getTaskProxy();
+    TaskProxy task_proxy = TaskProxy(*tasks::g_root_task);
     cout << endl;
     /*
     Remo: Expand plan for the simplified task to a plan for the original task

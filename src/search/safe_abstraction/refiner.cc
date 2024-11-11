@@ -1,7 +1,7 @@
 #include "refiner.h"
 #include "../task_proxy.h"
 
-Plan refiner::refine_plan(Plan plan, vector<pair<compositor, abstractor>> &abstraction_hirarchy)
+Plan refiner::refine_plan(Plan plan, vector<pair<abstractor, compositor>> &abstraction_hirarchy)
 {
     std::cout << "=============================== REFINEMNET =============================" << std::endl;
 
@@ -10,23 +10,21 @@ Plan refiner::refine_plan(Plan plan, vector<pair<compositor, abstractor>> &abstr
 	int i = 0;
 	std::reverse(abstraction_hirarchy.begin(), abstraction_hirarchy.end());
 
-    if (abstraction_hirarchy.size() > 0) { printPlan(plan, abstraction_hirarchy[0].second.getTaskProxy()); }
+    if (abstraction_hirarchy.size() > 0) { printPlan(plan, abstraction_hirarchy[0].first.getTaskProxy()); }
 
     for (auto step : abstraction_hirarchy)
     {
-        printPlan(plan, step.second.getTaskProxy());
-
         cout << "> Refining Step: " << i << endl;
         i++;
 
-        cout << "Inserting missing Operators..." << endl;
-        refiner::refine_step(plan, step.second);
-
         cout << "Decomposing Operators..." << endl;
-        refiner::decompose_step(plan, step.first);
+        refiner::decompose_step(plan, step.second);
+
+        cout << "Inserting missing Operators..." << endl;
+        refiner::refine_step(plan, step.first);
 
         cout << "Intermediate Plan Length: " << plan.size() << endl;
-        printPlan(plan, step.second.getTaskProxy());
+        printPlan(plan, step.first.getTaskProxy());
 
     }
     cout << endl;
@@ -50,15 +48,27 @@ void refiner::decompose_step(Plan &plan, compositor &compositor)
         int opID = plan[i].get_index();
         if (decompositOperations.count(opID) > 0)
         {
-            plan.erase(plan.begin() + i);
-            int offset = i;
-            for (auto operatorProxy : decompositOperations[opID])
-            {
-                plan.insert(plan.begin()+offset, OperatorID(operatorProxy.get_id()));
-                offset++;
-            }
+        	decomposeCompositeOperator(plan, compositor, i);
+            decompose_step(plan, compositor);
+            return;
         }
     }
+}
+
+void refiner::decomposeCompositeOperator(Plan &plan, compositor &compositor, int insertionIndex)
+{
+    int opID = plan[insertionIndex].get_index();
+    int offset = insertionIndex;
+
+    cout << "Decomposing Operator " << opID << " at position " << insertionIndex << endl;
+
+	plan.erase(plan.begin() + insertionIndex);
+	for (auto operatorProxy : compositor.decompositOperations[opID])
+	{
+        cout << "Inserting Operator " << operatorProxy.get_name() << " at position " << offset << endl;
+    	plan.insert(plan.begin()+offset, OperatorID(operatorProxy.get_id()));
+    	offset++;
+	}
 }
 
 void refiner::refine_step(Plan &plan, abstractor &abstractor)
@@ -172,6 +182,7 @@ void refiner::printPlan(Plan &plan, TaskProxy task_proxy)
         auto op = operators[step];
         cout << "    " << op.get_name() << endl;
 
+        /*
         cout << "        " << "Precon: ";
         for (auto precon : op.get_preconditions())
         {
@@ -185,5 +196,6 @@ void refiner::printPlan(Plan &plan, TaskProxy task_proxy)
             cout << postcon.get_fact().get_variable().get_name() << " = " << postcon.get_fact().get_value() << ", ";
         }
         cout << endl;
+         */
     }
 }

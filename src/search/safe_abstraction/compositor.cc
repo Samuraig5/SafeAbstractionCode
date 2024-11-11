@@ -29,7 +29,7 @@ void compositor::composite()
 		 */
 
     	std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
-    	if (!newTargets.first.empty())
+    	if (!newTargets.first.empty() && notBIsCommutative(newTargets.first, newTargets.second, c))
     	{
 			compositeTargets.push_back(newTargets);
     		count++;
@@ -47,7 +47,7 @@ void compositor::composite()
         std::vector<std::vector<OperatorProxy>> compositeChain = generateCompositeOperations(compositeTargets);
 
         std::cout << "Creating decomposition map..." << std::endl;
-    	int newIndex = taskProxy.get_variables().size();
+    	int newIndex = taskProxy.get_operators().size();
     	for (auto c : compositeChain)
     	{
         	decompositOperations[newIndex] = c;
@@ -67,17 +67,14 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
         {
             auto B = compositeTarget.second;
 
-            if (notBIsCommutative(A, B))
-            {
-            	std::vector<OperatorProxy> compositeOperation;
-        		compositeOperation.push_back(taskProxy.get_operators()[A]);
+            std::vector<OperatorProxy> compositeOperation;
+        	compositeOperation.push_back(taskProxy.get_operators()[A]);
 
-            	tasks::ExplicitOperator emptyTask = tasks::ExplicitOperator(std::vector<FactPair>(), vector<tasks::ExplicitEffect>(), 0, "", false);
-            	auto expandedOperations = expandCompositeOperation(compositeOperation, B, emptyTask);
-            	compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
+            tasks::ExplicitOperator emptyTask = tasks::ExplicitOperator(std::vector<FactPair>(), vector<tasks::ExplicitEffect>(), 0, "", false);
+            auto expandedOperations = expandCompositeOperation(compositeOperation, B, emptyTask);
+            compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
 
-            	if (expandedOperations.size() > 0) {compositedOperatorIDs.insert(A);} //If expanded chains are found mark A
-            }
+            if (expandedOperations.size() > 0) {compositedOperatorIDs.insert(A);} //If expanded chains are found mark A
         }
     }
     double sumOfLength = 0;
@@ -85,7 +82,7 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     {
     	sumOfLength += compositeOperation.size();
     }
-    std::cout << "Generated " << compositionList.size() << " composite operations of average length: " << sumOfLength/compositionList.size() << std::endl;
+    std::cout << "Generated " << compositionList.size() << " composite operatiors of average length: " << sumOfLength/compositionList.size() << std::endl;
     std::cout << compositedOperatorIDs.size() << " out of  " << taskProxy.get_operators().size() << " operators have been replaced with compositions." << std::endl;
     return compositionList;
 }
@@ -230,18 +227,31 @@ bool compositor::areIdenticalOperators(tasks::ExplicitOperator a, tasks::Explici
     return true;
 }
 
-bool compositor::notBIsCommutative(int A, std::set<int> B)
+bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector<std::pair<int, int>> c)
 {
+    bool isCommutative = true;
 	std::set<int> notB;
+    std::set<int> AUB = A;
+    AUB.insert(B.begin(), B.end());
+
     for (auto op : taskProxy.get_operators())
     {
-    	if (B.count(op.get_id()) == 0) {notB.insert(op.get_id());}
+    	if (B.count(op.get_id()) == 0)
+    	{
+        	bool consistentWithC = true;
+
+        	for (auto pre : op.get_preconditions())
+            {
+                bool factConsistent = false;
+            	for (auto fact : c)
+                {
+                	if (pre.get_pair().var == fact.first && pre.get_pair().value == fact.second) {consistentWithC = true; break;}
+                }
+                if (!factConsistent) {consistentWithC = false; break;}
+            }
+            if (consistentWithC) {notB.insert(op.get_id());}
+        }
     }
-
-    bool isCommutative = true;
-
-    std::set<int> AUB = B;
-    AUB.insert(A);
 
     for (auto notb : notB)
     {
@@ -249,22 +259,38 @@ bool compositor::notBIsCommutative(int A, std::set<int> B)
         for (auto aub : AUB)
         {
         	auto aubOp = taskProxy.get_operators()[aub];
-
             for (auto notbEffect : notbOp.get_effects())
         	{
-        		for (auto aubPrecon : aubOp.get_preconditions())
-            	{
-                	//Is this too strict? We could also check via values if its commutative
-           			if (notbEffect.get_fact().get_pair().var == aubPrecon.get_pair().var) {return false;}
+        		for (auto aubPrecon : aubOp.get_preconditions()){
+           			if (notbEffect.get_fact().get_pair().var == aubPrecon.get_pair().var) {
+						if (notbEffect.get_fact().get_pair().value != aubPrecon.get_pair().value)
+                        {
+                            std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
+                        	return false;
+                        }
+                    }
             	}
+
+                for (auto aubEffect : aubOp.get_effects()){
+                	if (notbEffect.get_fact().get_pair().var == aubEffect.get_fact().get_pair().var) {
+                        if (notbEffect.get_fact().get_pair().value != aubEffect.get_fact().get_pair().value)
+                        {
+                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
+							return false;
+                        }
+                    }
+        		}
         	}
 
-            for (auto aubEffect : aubOp.get_effects())
-        	{
-        		for (auto notbPrecon : notbOp.get_preconditions())
-            	{
-                	//Is this too strict? We could also check via values if its commutative
-           			if (aubEffect.get_fact().get_pair().var == notbPrecon.get_pair().var) {return false;}
+            for (auto aubEffect : aubOp.get_effects()){
+        		for (auto notbPrecon : notbOp.get_preconditions()){
+           			if (aubEffect.get_fact().get_pair().var == notbPrecon.get_pair().var){
+                    	if (aubEffect.get_fact().get_pair().value != notbPrecon.get_pair().value)
+                        {
+                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
+							return false;
+                        }
+                	}
             	}
         	}
         }

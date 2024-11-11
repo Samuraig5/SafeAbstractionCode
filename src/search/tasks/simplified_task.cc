@@ -6,7 +6,7 @@ namespace tasks {
 SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor compositor) : RootTask(*parent)
 {
   cout << "> Simplifing Task (Composing Operators)" << endl;
-  print_operators();
+  //print_operators();
 
   std::set<int> compositedOperators = compositor.compositedOperatorIDs;
   //Clear the compositedOperators
@@ -21,7 +21,7 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor com
   {
       operators.push_back(CompOp);
   }
-  print_operators();
+  	//print_operators();
 }
 
 

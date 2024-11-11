@@ -27,7 +27,7 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
         bool isCompositeOperationExecutable(std::vector<OperatorProxy> compositeOperation);
         tasks::ExplicitOperator createExplicitOperator(std::vector<OperatorProxy> compOp);
         bool areIdenticalOperators(tasks::ExplicitOperator a, tasks::ExplicitOperator b);
-        bool notBIsCommutative(int A, std::set<int> B);
+        bool notBIsCommutative(std::set<int> A, std::set<int> B, std::vector<std::pair<int, int>> c);
     public:
         compositor(std::shared_ptr<AbstractTask> abstractTask)
             : abstractTask(abstractTask), taskProxy(*abstractTask)
