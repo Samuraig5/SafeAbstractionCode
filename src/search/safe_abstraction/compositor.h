@@ -23,10 +23,11 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
         std::vector<std::vector<std::pair<int, int>>> getC();
         std::pair<std::set<int>, std::set<int>> getCompositeTargets(std::vector<std::pair<int, int>> c);
         std::vector<std::vector<OperatorProxy>> generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets);
-        std::vector<std::vector<OperatorProxy>> expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> remainingTargets, tasks::ExplicitOperator parentOperator);
+        std::vector<std::vector<OperatorProxy>> expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> targets, tasks::ExplicitOperator parentOperator);
         bool isCompositeOperationExecutable(std::vector<OperatorProxy> compositeOperation);
         tasks::ExplicitOperator createExplicitOperator(std::vector<OperatorProxy> compOp);
         bool areIdenticalOperators(tasks::ExplicitOperator a, tasks::ExplicitOperator b);
+        bool notBIsCommutative(int A, std::set<int> B);
     public:
         compositor(std::shared_ptr<AbstractTask> abstractTask)
             : abstractTask(abstractTask), taskProxy(*abstractTask)
