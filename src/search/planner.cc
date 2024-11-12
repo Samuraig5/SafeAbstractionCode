@@ -86,7 +86,7 @@ int main(int argc, const char **argv) {
 
             // = COMPOSITOR ==
             original_task = tasks::g_root_task;
-            compositor compositor(original_task, true);
+            compositor compositor(original_task, false);
             if (!compositor.compositeOperators.empty())
             {
             	numCompositeOperators += compositor.compositeOperators.size();
