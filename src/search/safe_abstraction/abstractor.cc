@@ -87,8 +87,6 @@ std::list<int> abstractor::find_safe_variables()
     		//Check if goal value is reachable from the externally caused values
         	for (int extCausedVal : externallyCausedValues)
         	{
-     	    	//Since the externally req val would have to be stronly connected,
-     	    	// being reachable from any ext.req.val should be sufficient to proof this property.
     	    	if (!free_dtg.isReachable(extCausedVal, { goalValue }))
             	{
         	    	goalReachable = false;

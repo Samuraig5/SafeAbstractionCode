@@ -70,8 +70,7 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
             std::vector<OperatorProxy> compositeOperation;
         	compositeOperation.push_back(taskProxy.get_operators()[A]);
 
-            tasks::ExplicitOperator emptyTask = tasks::ExplicitOperator(std::vector<FactPair>(), vector<tasks::ExplicitEffect>(), 0, "", false);
-            auto expandedOperations = expandCompositeOperation(compositeOperation, B, emptyTask);
+            auto expandedOperations = expandCompositeOperation(compositeOperation, B);
             compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
 
             if (expandedOperations.size() > 0) {compositedOperatorIDs.insert(A);} //If expanded chains are found mark A
@@ -87,7 +86,7 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     return compositionList;
 }
 
-std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> targets, tasks::ExplicitOperator parentOperator)
+std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> targets)
 {
 	std::vector<std::vector<OperatorProxy>>	compositionList;
 
@@ -98,13 +97,13 @@ std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std
     	if (isCompositeOperationExecutable(expandedCompositeOperation))
         {
         	tasks::ExplicitOperator newOperator = createExplicitOperator(expandedCompositeOperation);
-            if (areIdenticalOperators(parentOperator, newOperator)) {return compositionList;}
+            if (!isUniqueOperator(newOperator)) {return compositionList;}
 
             compositeOperators.push_back(newOperator);
         	compositedOperatorIDs.insert(b);
         	compositionList.push_back(expandedCompositeOperation);
 
-        	auto expandedOperations = expandCompositeOperation(expandedCompositeOperation, targets, newOperator);
+        	auto expandedOperations = expandCompositeOperation(expandedCompositeOperation, targets);
             compositionList.insert(compositionList.end(), expandedOperations.begin(), expandedOperations.end());
         }
     }
@@ -186,6 +185,14 @@ tasks::ExplicitOperator compositor::createExplicitOperator(std::vector<OperatorP
 
       tasks::ExplicitOperator compositeOP = tasks::ExplicitOperator(preconditions, effects, cost, name, is_an_axiom);
       return compositeOP;
+}
+bool compositor::isUniqueOperator(tasks::ExplicitOperator newOperator)
+{
+	for(auto op : compositeOperators)
+    {
+          if (areIdenticalOperators(op, newOperator)) {return false;}
+    }
+    return true;
 }
 
 bool compositor::areIdenticalOperators(tasks::ExplicitOperator a, tasks::ExplicitOperator b)
