@@ -44,6 +44,9 @@ int main(int argc, const char **argv) {
         std::cout << std::endl << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
+        bool doAbstraction = true;
+        bool doComposition = true;
+
         bool continiueAbstraction = true;
         bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
@@ -60,7 +63,8 @@ int main(int argc, const char **argv) {
             // = ABSTRACTOR =
             original_task = tasks::g_root_task;
             abstractor abstractor(original_task);
-            std::list<int> safe_variables = abstractor.find_safe_variables();
+            std::list<int> safe_variables;
+            if (doAbstraction) {safe_variables = abstractor.find_safe_variables();}
 
             if (!safe_variables.empty())
             {
@@ -86,7 +90,7 @@ int main(int argc, const char **argv) {
 
             // = COMPOSITOR ==
             original_task = tasks::g_root_task;
-            compositor compositor(original_task, false);
+            compositor compositor(original_task, doComposition);
             if (!compositor.compositeOperators.empty())
             {
             	numCompositeOperators += compositor.compositeOperators.size();
