@@ -50,6 +50,8 @@ int main(int argc, const char **argv) {
         bool continiueAbstraction = true;
         bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
+        bool noNewAbstractionAfterComposition = false;
+
         int step = 0;
         int numSafeVariables = 0;
         int numOperatorsInOriginalTask = task_proxy.get_operators().size();
@@ -90,6 +92,11 @@ int main(int argc, const char **argv) {
 
             // = COMPOSITOR ==
             original_task = tasks::g_root_task;
+            if (!foundSafeVariables && foundCompsitableOperators)
+            {
+            	noNewAbstractionAfterComposition = true;
+                doComposition = false;
+            }
             compositor compositor(original_task, doComposition);
             if (!compositor.compositeOperators.empty())
             {
@@ -113,6 +120,11 @@ int main(int argc, const char **argv) {
             else if (!foundCompsitableOperators && !foundSafeVariables)
             {
                 std::cout << "> Found no compositable operators nor any safe variables" << endl;
+                continiueAbstraction = false;
+            }
+            else if (noNewAbstractionAfterComposition)
+            {
+                std::cout << "> Found no new abstraction after (a) composition" << endl;
                 continiueAbstraction = false;
             }
         }
