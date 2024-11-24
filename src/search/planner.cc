@@ -46,6 +46,8 @@ int main(int argc, const char **argv) {
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
         bool doAbstraction = true;
         bool doComposition = true;
+        // How often should we perform a composition without a new abstraction before giving up? (-1 means no limit)
+        int numCompositionWithoutAbstraction = -1;
 
         bool continiueAbstraction = true;
         bool foundCompsitableOperators = false;
@@ -56,6 +58,7 @@ int main(int argc, const char **argv) {
         int numSafeVariables = 0;
         int numOperatorsInOriginalTask = task_proxy.get_operators().size();
         int numCompositeOperators = 0;
+        int numCompositionRemaining = numCompositionWithoutAbstraction;
         do
         {
         	cout << endl;
@@ -72,6 +75,7 @@ int main(int argc, const char **argv) {
             {
                 foundSafeVariables = true;
                 foundCompsitableOperators = false;
+                numCompositionRemaining = numCompositionWithoutAbstraction;
                 cout << "Found safe variable: ";
                 for (int safe_variable : safe_variables)
                 {
@@ -92,7 +96,7 @@ int main(int argc, const char **argv) {
 
             // = COMPOSITOR ==
             original_task = tasks::g_root_task;
-            if (!foundSafeVariables && foundCompsitableOperators)
+            if (numCompositionRemaining == 0)
             {
             	noNewAbstractionAfterComposition = true;
                 doComposition = false;
@@ -103,6 +107,8 @@ int main(int argc, const char **argv) {
             	numCompositeOperators += compositor.compositeOperators.size();
                 foundCompsitableOperators = true;
                 foundSafeVariables = false;
+                numCompositionRemaining--;
+                //cout << "Remaining " << numCompositionRemaining << endl;
             }
 
             original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
@@ -124,7 +130,7 @@ int main(int argc, const char **argv) {
             }
             else if (noNewAbstractionAfterComposition)
             {
-                std::cout << "> Found no new abstraction after (a) composition" << endl;
+                std::cout << "> Found no new abstraction after " << numCompositionWithoutAbstraction << " compositions" << endl;
                 continiueAbstraction = false;
             }
         }
