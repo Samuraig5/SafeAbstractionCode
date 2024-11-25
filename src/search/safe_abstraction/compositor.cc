@@ -249,12 +249,11 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
 
         	for (auto pre : op.get_preconditions())
             {
-                bool factConsistent = false;
             	for (auto fact : c)
                 {
-                	if (pre.get_pair().var == fact.first && pre.get_pair().value == fact.second) {consistentWithC = true; break;}
+                	if (pre.get_pair().var == fact.first && pre.get_pair().value == fact.second) {consistentWithC = false; break;}
                 }
-                if (!factConsistent) {consistentWithC = false; break;}
+                if (!consistentWithC) {break;}
             }
             if (consistentWithC) {notB.insert(op.get_id());}
         }
