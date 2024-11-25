@@ -44,8 +44,8 @@ int main(int argc, const char **argv) {
         std::cout << std::endl << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
-        bool doAbstraction = true;
-        bool doComposition = true;
+        bool doAbstraction = false;
+        bool doComposition = false;
         // How often should we perform a composition without a new abstraction before giving up? (-1 means no limit)
         int numCompositionWithoutAbstraction = -1;
 
