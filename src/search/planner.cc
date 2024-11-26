@@ -49,7 +49,7 @@ int main(int argc, const char **argv) {
         // How often should we perform a composition without a new abstraction before giving up? (-1 means no limit)
         int numCompositionWithoutAbstraction = -1;
 
-        bool continiueAbstraction = true;
+        bool continiueAbstraction = false;
         bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
         bool noNewAbstractionAfterComposition = false;
