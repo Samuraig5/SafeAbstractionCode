@@ -59,11 +59,11 @@ int main(int argc, const char **argv) {
         int numOperatorsInOriginalTask = task_proxy.get_operators().size();
         int numCompositeOperators = 0;
         int numCompositionRemaining = numCompositionWithoutAbstraction;
-        do
+
+        while (continiueAbstraction)
         {
         	cout << endl;
         	cout << "=> Step: " << step << endl;
-            step++;
 
             // = ABSTRACTOR =
             original_task = tasks::g_root_task;
@@ -115,26 +115,30 @@ int main(int argc, const char **argv) {
             simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
             tasks::g_root_task = simplified_task;
 
-            abstraction_hirarchy.push_back(make_pair(abstractor, compositor));
-
-            task_proxy = TaskProxy(*tasks::g_root_task);
-            if (task_proxy.get_variables().size() == 0)
+            if (!foundCompsitableOperators && !foundSafeVariables)
             {
-                std::cout << "> Problem was fully solved by abstraction" << endl;
+            	std::cout << "=> Nothing was done in this step" << endl;
+                std::cout << endl << "> Found no compositable operators nor any safe variables" << endl;
                 continiueAbstraction = false;
             }
-            else if (!foundCompsitableOperators && !foundSafeVariables)
+            else
             {
-                std::cout << "> Found no compositable operators nor any safe variables" << endl;
+            	step++;
+                abstraction_hirarchy.push_back(make_pair(abstractor, compositor));
+            }
+            task_proxy = TaskProxy(*tasks::g_root_task);
+
+            if (task_proxy.get_variables().size() == 0)
+            {
+                std::cout << endl << "> Problem was fully solved by abstraction" << endl;
                 continiueAbstraction = false;
             }
             else if (noNewAbstractionAfterComposition)
             {
-                std::cout << "> Found no new abstraction after " << numCompositionWithoutAbstraction << " compositions" << endl;
+                std::cout << endl << "> Found no new abstraction after " << numCompositionWithoutAbstraction << " compositions" << endl;
                 continiueAbstraction = false;
             }
         }
-        while (continiueAbstraction);
 
         cout << endl;
         cout << "Abstraction took " << step << " steps" << endl;

@@ -251,7 +251,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
             {
             	for (auto fact : c)
                 {
-                	if (pre.get_pair().var == fact.first && pre.get_pair().value == fact.second) {consistentWithC = false; break;}
+                	if (pre.get_pair().var == fact.first && pre.get_pair().value != fact.second) {consistentWithC = false; break;}
                 }
                 if (!consistentWithC) {break;}
             }
@@ -271,7 +271,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
            			if (notbEffect.get_fact().get_pair().var == aubPrecon.get_pair().var) {
 						if (notbEffect.get_fact().get_pair().value != aubPrecon.get_pair().value)
                         {
-                            std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
+                            //std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
                         	return false;
                         }
                     }
@@ -281,7 +281,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
                 	if (notbEffect.get_fact().get_pair().var == aubEffect.get_fact().get_pair().var) {
                         if (notbEffect.get_fact().get_pair().value != aubEffect.get_fact().get_pair().value)
                         {
-                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
+                        	//std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
 							return false;
                         }
                     }
@@ -293,7 +293,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
            			if (aubEffect.get_fact().get_pair().var == notbPrecon.get_pair().var){
                     	if (aubEffect.get_fact().get_pair().value != notbPrecon.get_pair().value)
                         {
-                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
+                        	//std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
 							return false;
                         }
                 	}
