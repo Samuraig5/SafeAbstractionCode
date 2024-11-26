@@ -110,6 +110,10 @@ int main(int argc, const char **argv) {
                 numCompositionRemaining--;
                 //cout << "Remaining " << numCompositionRemaining << endl;
             }
+            else
+            {
+                foundCompsitableOperators = false;
+            }
 
             original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
             simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
