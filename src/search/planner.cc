@@ -45,11 +45,11 @@ int main(int argc, const char **argv) {
 
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
         bool doAbstraction = true;
-        bool doComposition = true;
+        bool doComposition = false;
         // How often should we perform a composition without a new abstraction before giving up? (-1 means no limit)
         int numCompositionWithoutAbstraction = -1;
 
-        bool continiueAbstraction = false;
+        bool continiueAbstraction = true;
         bool foundCompsitableOperators = false;
         bool foundSafeVariables = false;
         bool noNewAbstractionAfterComposition = false;
