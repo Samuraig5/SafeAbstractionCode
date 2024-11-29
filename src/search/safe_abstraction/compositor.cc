@@ -4,6 +4,7 @@ void compositor::composite()
 {
   	std::cout << "> Running Compositor" << std::endl;
 
+    //For each variable pair
     if (taskProxy.get_variables().size() == 0)
     {
     	std::cout << "Task provided has no remaining variables" << std::endl;
@@ -15,29 +16,26 @@ void compositor::composite()
     double averageA = 0;
     double averageB = 0;
 
-    std::vector<std::vector<std::pair<int, int>>> C = getC();
+    std::vector<std::vector<std::pair<int, int>>> C = getC(); //Pass pair
 
     for (auto c : C)
     {
-		/*
-		std::cout << "c: ";
-    	for (auto fact : c)
-    	{
-    		std::cout << taskProxy.get_variables()[fact.first].get_name() << " = " << fact.second << ", ";
-    	}
-    	std::cout << std::endl;
-		 */
-
     	std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
-    	if (!newTargets.first.empty() && notBIsCommutative(newTargets.first, newTargets.second, c))
+    	if (!newTargets.first.empty() && notBIsCommutative(newTargets.first, newTargets.second, c)) //Add notA check
     	{
 			compositeTargets.push_back(newTargets);
     		count++;
     		averageA += (newTargets.first.size() - averageA) / count;
     		averageB += (newTargets.second.size() - averageB) / count;
     	}
+        //else {skip to next variable pair, break;}
+        // generateCompositeOperations(compositeTargets)
+        //
+        //Do composition(simiplified_task)
+
     	c.clear();
     }
+    //If break: continiue;
 
     std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
     if (compositeTargets.size() > 0)
@@ -54,6 +52,12 @@ void compositor::composite()
         	newIndex++;
     	}
     }
+
+    //Test for second contition with compositeOperators
+    //True: Return;
+    //False: Clear(); Next variable pair
+
+    //End of composite()
 }
 
 std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)

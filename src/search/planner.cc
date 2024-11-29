@@ -43,6 +43,16 @@ int main(int argc, const char **argv) {
 
         std::cout << std::endl << "============================ SAFE ABSTRACTION ==========================" << std::endl;
 
+        /*
+        Remo: Assume that the first of the arguments passed to the search
+        component (the one after '--search') encodes the info we need.
+        */
+        string myargstring = static_cast<string>(argv[2]);
+        // TODO: Come up with some format for that string and parse it here.
+		// --all - both
+        // --abstraction - no composition
+        // --composition - Irrelevant
+
         cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
         bool doAbstraction = true;
         bool doComposition = true;
@@ -161,7 +171,19 @@ int main(int argc, const char **argv) {
     if (task_proxy.get_variables().size() > 0)
     {
       cout << "Running search algorithm" << endl;
-      shared_ptr<SearchAlgorithm> search_algorithm = parse_cmd_line(argc, argv, unit_cost);
+      /*
+      Remo : Create a new argv that removes the argument(s) we parsed above so
+      that the `parse_cmd_line` function receives the argument list as it would
+      look without our additional argument(s).
+      */
+      int my_argc = argc-1;
+      const char** my_argv = new const char*[my_argc];
+      my_argv[0] = argv[0]; // The first argument is always the name of the programm.
+      my_argv[1] = argv[1]; // The second is '--search', which we need to keep.
+      for (int i = 3; i < argc; ++i) {
+          my_argv[i-1] = argv[i];
+      }
+      shared_ptr<SearchAlgorithm> search_algorithm = parse_cmd_line(my_argc, my_argv, unit_cost);
       utils::Timer search_timer;
       search_algorithm->search();
       search_timer.stop();
