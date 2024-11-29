@@ -20,7 +20,8 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
 
     private:
         void composite();
-        std::vector<std::vector<std::pair<int, int>>> getC();
+        std::vector<std::pair<VariableProxy, VariableProxy>> getVariablePairs();
+        std::vector<std::vector<std::pair<int, int>>> getC(std::pair<VariableProxy, VariableProxy> varPair);
         std::pair<std::set<int>, std::set<int>> getCompositeTargets(std::vector<std::pair<int, int>> c);
         std::vector<std::vector<OperatorProxy>> generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets);
         std::vector<std::vector<OperatorProxy>> expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> targets);
@@ -29,6 +30,7 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
         bool isUniqueOperator(tasks::ExplicitOperator newOperator);
         bool areIdenticalOperators(tasks::ExplicitOperator a, tasks::ExplicitOperator b);
         bool notBIsCommutative(std::set<int> A, std::set<int> B, std::vector<std::pair<int, int>> c);
+        bool removesCausalCoupling(std::pair<VariableProxy, VariableProxy> varPair);
     public:
         compositor(std::shared_ptr<AbstractTask> abstractTask, bool enable)
             : abstractTask(abstractTask), taskProxy(*abstractTask)

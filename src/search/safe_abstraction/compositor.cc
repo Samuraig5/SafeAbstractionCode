@@ -3,66 +3,132 @@
 void compositor::composite()
 {
   	std::cout << "> Running Compositor" << std::endl;
-
-    //For each variable pair
-    if (taskProxy.get_variables().size() == 0)
+    if (taskProxy.get_variables().size() <= 1)
     {
-    	std::cout << "Task provided has no remaining variables" << std::endl;
-        return;
+    	std::cout << "Provided does not have enough remaining variables for composition (atleast 2)" << std::endl;
+       	return;
     }
 
-    std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
-    int count = 0;
-    double averageA = 0;
-    double averageB = 0;
+    int pairCounter = 0;
+	auto varPairs = getVariablePairs();
+	for (auto varPair : varPairs)
+	{
+        pairCounter++;
+		bool notSafe = false;
 
-    std::vector<std::vector<std::pair<int, int>>> C = getC(); //Pass pair
+    	std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
+	    int count = 0;
+    	double averageA = 0;
+    	double averageB = 0;
 
-    for (auto c : C)
-    {
-    	std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
-    	if (!newTargets.first.empty() && notBIsCommutative(newTargets.first, newTargets.second, c)) //Add notA check
+    	std::vector<std::vector<std::pair<int, int>>> C = getC(varPair); //Pass pair
+
+    	for (auto c : C)
     	{
-			compositeTargets.push_back(newTargets);
-    		count++;
-    		averageA += (newTargets.first.size() - averageA) / count;
-    		averageB += (newTargets.second.size() - averageB) / count;
+    		std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
+            //if (newTargets.first.empty())
+            //{
+            //	cout << "A is empty." << endl;
+            //	notSafe = true; break;
+            //}
+            if (!notBIsCommutative(newTargets.first, newTargets.second, c))
+            {
+            	//cout << "NotB is not commutative" << endl;
+                notSafe = true; break;
+            }
+    		else //Add notA check
+    		{
+            	compositeTargets.push_back(newTargets);
+    			count++;
+    			averageA += (newTargets.first.size() - averageA) / count;
+    			averageB += (newTargets.second.size() - averageB) / count;
+    		}
     	}
-        //else {skip to next variable pair, break;}
-        // generateCompositeOperations(compositeTargets)
-        //
-        //Do composition(simiplified_task)
+    	if (notSafe)
+        {
+          	//cout << "c not safe." << endl;
+        	continue;
+        }
+    	//If break: continiue;
 
-    	c.clear();
-    }
-    //If break: continiue;
-
-    std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
-    if (compositeTargets.size() > 0)
-    {
-        std::cout << "Average length of A: " << averageA << std::endl;
-        std::cout << "Average length of B: " << averageB << std::endl;
-        std::vector<std::vector<OperatorProxy>> compositeChain = generateCompositeOperations(compositeTargets);
-
-        std::cout << "Creating decomposition map..." << std::endl;
-    	int newIndex = taskProxy.get_operators().size();
-    	for (auto c : compositeChain)
+    	//std::cout << "Found " << compositeTargets.size() << " composition target set pairs " << std::endl;
+    	if (compositeTargets.size() > 0)
     	{
-        	decompositOperations[newIndex] = c;
-        	newIndex++;
+        	//std::cout << "Average length of A: " << averageA << std::endl;
+        	//std::cout << "Average length of B: " << averageB << std::endl;
+        	std::vector<std::vector<OperatorProxy>> compositeChain = generateCompositeOperations(compositeTargets);
+
+        	//std::cout << "Creating decomposition map..." << std::endl;
+    		int newIndex = taskProxy.get_operators().size();
+    		for (auto c : compositeChain)
+    		{
+        		decompositOperations[newIndex] = c;
+        		newIndex++;
+    		}
+   		}
+
+    	//Test for second contition with compositeOperators
+    	//True: Return;
+   	 	//False: Clear(); Next variable pair
+    	if (removesCausalCoupling(varPair) && compositeOperators.size() > 0)
+        {
+          //cout << "Causal Coupling is removed." << endl;
+          cout << "Tried " << pairCounter << " variable pairs and found a causal decoupling" << endl;
+          return;
+        }
+    	else
+    	{
+        	//cout << "Causal Coupling is NOT removed." << endl;
+    		compositedOperatorIDs.clear();
+    		compositeOperators.clear();
+    		decompositOperations.clear();
     	}
     }
+    cout << "Tried " << pairCounter << " variable pairs and did NOT find a causal decoupling" << endl;
+}
 
-    //Test for second contition with compositeOperators
-    //True: Return;
-    //False: Clear(); Next variable pair
+bool compositor::removesCausalCoupling(std::pair<VariableProxy, VariableProxy> varPair)
+{
+	for (auto compOp : compositeOperators)
+	{
+        int var1Precon;
+        int var2Precon;
+        bool changedVar1 = false;
+        bool changedVar2 = false;
 
-    //End of composite()
+		auto preCons = compOp.preconditions;
+		for (auto pre : preCons)
+		{
+			if (pre.var == varPair.first.get_id())
+            {
+				var1Precon = pre.value;
+            }
+            else if (pre.var == varPair.second.get_id())
+            {
+            	var2Precon = pre.value;
+            }
+		}
+
+		auto postCons = compOp.effects;
+		for (auto post : postCons)
+		{
+			if (post.fact.var == varPair.first.get_id())
+            {
+				if (post.fact.value != var1Precon) {changedVar1 = true;}
+            }
+            else if (post.fact.var == varPair.second.get_id())
+            {
+				if (post.fact.value != var2Precon) {changedVar2 = true;}
+            }
+            if (changedVar1 && changedVar2) { return false; } //This compOp changed more than 1 variable
+		}
+	}
+	return true; //return true if all is good
 }
 
 std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets)
 {
-	std::cout << "Generating composite operations..." << std::endl;
+	//std::cout << "Generating composite operations..." << std::endl;
 	std::vector<std::vector<OperatorProxy>> compositionList;
 
     for (auto compositeTarget : compositeTargets)
@@ -85,8 +151,8 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
     {
     	sumOfLength += compositeOperation.size();
     }
-    std::cout << "Generated " << compositionList.size() << " composite operatiors of average length: " << sumOfLength/compositionList.size() << std::endl;
-    std::cout << compositedOperatorIDs.size() << " out of  " << taskProxy.get_operators().size() << " operators have been replaced with compositions." << std::endl;
+    //std::cout << "Generated " << compositionList.size() << " composite operatiors of average length: " << sumOfLength/compositionList.size() << std::endl;
+    //std::cout << compositedOperatorIDs.size() << " out of  " << taskProxy.get_operators().size() << " operators have been replaced with compositions." << std::endl;
     return compositionList;
 }
 
@@ -419,30 +485,24 @@ std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vec
     return std::make_pair(A, B);
 }
 
-std::vector<std::vector<std::pair<int, int>>> compositor::getC()
+std::vector<std::vector<std::pair<int, int>>> compositor::getC(std::pair<VariableProxy, VariableProxy> varPair)
 {
-    std::cout << "Getting c..." << std::endl;
+    //std::cout << "Getting c..." << std::endl;
 
     std::vector<std::vector<std::pair<int, int>>> possibleC;
 
-    for (int i = 0; i < taskProxy.get_variables().size()-1; i++)
+    for (int val1 = 0; val1 < varPair.first.get_domain_size(); val1++)
     {
-        for (int j = i+1; j < taskProxy.get_variables().size(); j++)
+    	for (int val2 = 0; val2 < varPair.second.get_domain_size(); val2++)
     	{
-    		for (int ii = 0; ii < taskProxy.get_variables()[i].get_domain_size(); ii++)
-    	    {
-    			for (int jj = 0; jj < taskProxy.get_variables()[j].get_domain_size(); jj++)
-    			{
-    	        	std::vector<std::pair<int, int>> c;
-    	        	c.push_back(std::make_pair(i, ii));
-    	        	c.push_back(std::make_pair(j, jj));
-    	        	possibleC.push_back(c);
-    	        }
-    	    }
+    		std::vector<std::pair<int, int>> c;
+    		c.push_back(std::make_pair(varPair.first.get_id(), val1));
+    		c.push_back(std::make_pair(varPair.second.get_id(), val2));
+    	    possibleC.push_back(c);
     	}
     }
 
-    std::cout << "Removing invalid c..." << std::endl;
+    //std::cout << "Removing invalid c..." << std::endl;
 
     std::vector<int> initialStates = abstractTask->get_initial_state_values();
     GoalsProxy goalFacts = taskProxy.get_goals();
@@ -465,4 +525,23 @@ std::vector<std::vector<std::pair<int, int>>> compositor::getC()
 
     //std::cout << "Found " << C.size() << " c sets" << std::endl;
     return C;
+}
+
+std::vector<std::pair<VariableProxy, VariableProxy>> compositor::getVariablePairs()
+{
+	std::cout << "Generating variable pairs..." << std::endl;
+	std::vector<std::pair<VariableProxy, VariableProxy>> varPairs;
+
+	auto vars = taskProxy.get_variables();
+	int varSize = vars.size();
+
+	for (int i = 0; i < varSize-1; i++)
+    {
+        for (int j = i+1; j < varSize; j++)
+    	{
+    		varPairs.push_back(std::make_pair(vars[i], vars[j]));
+            //cout << "made pair: (" << i << ", " << j << ")" << endl;
+    	}
+    }
+    return varPairs;
 }
