@@ -34,9 +34,15 @@ void compositor::composite()
             if (!notBIsCommutative(newTargets.first, newTargets.second, c))
             {
             	//cout << "NotB is not commutative" << endl;
-                notSafe = true; break;
+                notSafe = true;
+                break;
             }
-    		else //Add notA check
+            else if (!notAIsInconsistentOrDisjoint(newTargets.first, newTargets.second, c))
+            {
+            	notSafe = true;
+                break;
+            }
+    		else
     		{
             	compositeTargets.push_back(newTargets);
     			count++;
@@ -47,6 +53,8 @@ void compositor::composite()
     	if (notSafe)
         {
           	//cout << "c not safe." << endl;
+            printPair(varPair);
+            cout << " composition is NOT safe" << endl;
         	continue;
         }
     	//If break: continiue;
@@ -78,7 +86,8 @@ void compositor::composite()
         }
     	else
     	{
-        	//cout << "Causal Coupling is NOT removed." << endl;
+            printPair(varPair);
+			cout << " causal Coupling is NOT removed." << endl;
     		compositedOperatorIDs.clear();
     		compositeOperators.clear();
     		decompositOperations.clear();
@@ -374,6 +383,32 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
     return true;
 }
 
+bool compositor::notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, std::vector<std::pair<int, int>> c)
+{
+    for (auto op : taskProxy.get_operators())
+    {
+    	if (A.count(op.get_id()) == 0) //If not in A
+    	{
+        	for (auto post : op.get_effects())
+            {
+                auto postFact = post.get_fact().get_pair();
+
+                for (auto cFact : c)
+                {
+                	if (postFact.var == cFact.first && postFact.value != cFact.second) //same variable but diffrent value (Not disjoint and not inconsistent)
+                    {
+                        //cout << "notA is not disjoint or inconsistent from C" << endl;
+                        //cout << "(" << postFact.var << "," << postFact.value << ") != (" << cFact.first << "," << cFact.second << ")" << endl;
+                    	return false;
+                    }
+                }
+            }
+        }
+    }
+    //cout << "notA is disjoint or inconsistent from C" << endl;
+    return true;
+}
+
 std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vector<std::pair<int, int>> c)
 {
     std::set<int> A; //set of all actions whose effects include c
@@ -544,4 +579,9 @@ std::vector<std::pair<VariableProxy, VariableProxy>> compositor::getVariablePair
     	}
     }
     return varPairs;
+}
+
+void compositor::printPair(std::pair<VariableProxy, VariableProxy> varPair)
+{
+	cout << "(" << varPair.first.get_name() << "," << varPair.second.get_name() << ") :";
 }
