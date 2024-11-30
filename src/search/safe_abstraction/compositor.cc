@@ -53,8 +53,8 @@ void compositor::composite()
     	if (notSafe)
         {
           	//cout << "c not safe." << endl;
-            printPair(varPair);
-            cout << " composition is NOT safe" << endl;
+            //printPair(varPair);
+            //cout << " composition is NOT safe" << endl;
         	continue;
         }
     	//If break: continiue;
@@ -86,8 +86,8 @@ void compositor::composite()
         }
     	else
     	{
-            printPair(varPair);
-			cout << " causal Coupling is NOT removed." << endl;
+            //printPair(varPair);
+			//cout << " causal Coupling is NOT removed." << endl;
     		compositedOperatorIDs.clear();
     		compositeOperators.clear();
     		decompositOperations.clear();
@@ -389,20 +389,25 @@ bool compositor::notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, 
     {
     	if (A.count(op.get_id()) == 0) //If not in A
     	{
+        	bool disjoint = true;
         	for (auto post : op.get_effects())
             {
                 auto postFact = post.get_fact().get_pair();
 
                 for (auto cFact : c)
                 {
-                	if (postFact.var == cFact.first && postFact.value != cFact.second) //same variable but diffrent value (Not disjoint and not inconsistent)
-                    {
-                        //cout << "notA is not disjoint or inconsistent from C" << endl;
-                        //cout << "(" << postFact.var << "," << postFact.value << ") != (" << cFact.first << "," << cFact.second << ")" << endl;
-                    	return false;
+                	if (postFact.var == cFact.first)
+                	{
+                        disjoint = false;
+                    	if (postFact.value != cFact.second)
+                        {
+                        	//Not A is inconsistent
+							return true;
+                        }
                     }
                 }
             }
+            if (!disjoint) {return false;}
         }
     }
     //cout << "notA is disjoint or inconsistent from C" << endl;
