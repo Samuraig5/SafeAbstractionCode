@@ -10,11 +10,25 @@ void compositor::composite()
     }
 
     int pairCounter = 0;
-	auto varPairs = getVariablePairs();
-	for (auto varPair : varPairs)
+
+    auto vars = taskProxy.get_variables();
+	int varSize = taskProxy.get_variables().size();
+    int firstVarIndex = 0;
+    int secondVarIndex = 1;
+
+    while (firstVarIndex < varSize-1)
 	{
+    	cout << firstVarIndex << ", " << secondVarIndex << std::endl;
+        auto varPair = std::make_pair(vars[firstVarIndex], vars[secondVarIndex]);
         pairCounter++;
-		bool notSafe = false;
+        secondVarIndex++;
+        if (secondVarIndex >= varSize)
+        {
+        	firstVarIndex++;
+        	secondVarIndex = firstVarIndex+1;
+        }
+
+        bool notSafe = false;
 
     	std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets;
 	    int count = 0;
@@ -565,25 +579,6 @@ std::vector<std::vector<std::pair<int, int>>> compositor::getC(std::pair<Variabl
 
     //std::cout << "Found " << C.size() << " c sets" << std::endl;
     return C;
-}
-
-std::vector<std::pair<VariableProxy, VariableProxy>> compositor::getVariablePairs()
-{
-	std::cout << "Generating variable pairs..." << std::endl;
-	std::vector<std::pair<VariableProxy, VariableProxy>> varPairs;
-
-	auto vars = taskProxy.get_variables();
-	int varSize = vars.size();
-
-	for (int i = 0; i < varSize-1; i++)
-    {
-        for (int j = i+1; j < varSize; j++)
-    	{
-    		varPairs.push_back(std::make_pair(vars[i], vars[j]));
-            //cout << "made pair: (" << i << ", " << j << ")" << endl;
-    	}
-    }
-    return varPairs;
 }
 
 void compositor::printPair(std::pair<VariableProxy, VariableProxy> varPair)

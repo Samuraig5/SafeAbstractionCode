@@ -20,7 +20,6 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
 
     private:
         void composite();
-        std::vector<std::pair<VariableProxy, VariableProxy>> getVariablePairs();
         std::vector<std::vector<std::pair<int, int>>> getC(std::pair<VariableProxy, VariableProxy> varPair);
         std::pair<std::set<int>, std::set<int>> getCompositeTargets(std::vector<std::pair<int, int>> c);
         std::vector<std::vector<OperatorProxy>> generateCompositeOperations(std::vector<std::pair<std::set<int>, std::set<int>>> compositeTargets);
