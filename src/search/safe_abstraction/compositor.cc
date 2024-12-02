@@ -5,7 +5,7 @@ void compositor::composite()
   	std::cout << "> Running Compositor" << std::endl;
     if (taskProxy.get_variables().size() <= 1)
     {
-    	std::cout << "Provided does not have enough remaining variables for composition (atleast 2)" << std::endl;
+    	std::cout << "Provided task does not have enough remaining variables for composition (atleast 2)" << std::endl;
        	return;
     }
 
