@@ -18,7 +18,7 @@ void compositor::composite()
 
     while (firstVarIndex < varSize-1)
 	{
-    	cout << firstVarIndex << ", " << secondVarIndex << std::endl;
+    	//cout << firstVarIndex << ", " << secondVarIndex << std::endl;
         auto varPair = std::make_pair(vars[firstVarIndex], vars[secondVarIndex]);
         pairCounter++;
         secondVarIndex++;
