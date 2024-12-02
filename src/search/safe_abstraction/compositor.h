@@ -12,6 +12,7 @@ class compositor {
 std::shared_ptr<AbstractTask> abstractTask;
 TaskProxy taskProxy;
 std::shared_ptr<AbstractTask> compositedTask;
+int maxSequenceLength;
 
 public:
 std::set<int> compositedOperatorIDs;
@@ -34,9 +35,10 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
 
         void printPair(std::pair<VariableProxy, VariableProxy> varPair);
     public:
-        compositor(std::shared_ptr<AbstractTask> abstractTask, bool enable)
+        compositor(std::shared_ptr<AbstractTask> abstractTask, int maxSequenceLength, bool enable)
             : abstractTask(abstractTask), taskProxy(*abstractTask)
         {
+   		  this->maxSequenceLength = maxSequenceLength;
           if (enable) { composite(); }
         }
         std::shared_ptr<AbstractTask> getCompositedTask() {return compositedTask;}

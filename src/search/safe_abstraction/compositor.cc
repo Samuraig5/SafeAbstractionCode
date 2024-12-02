@@ -62,6 +62,8 @@ void compositor::composite()
     			count++;
     			averageA += (newTargets.first.size() - averageA) / count;
     			averageB += (newTargets.second.size() - averageB) / count;
+    			//cout << "B has: " << newTargets.second.size() << endl;
+    			//if (newTargets.second.size() > 1) {notSafe = true; break;}
     		}
     	}
     	if (notSafe)
@@ -182,6 +184,9 @@ std::vector<std::vector<OperatorProxy>> compositor::generateCompositeOperations(
 std::vector<std::vector<OperatorProxy>> compositor::expandCompositeOperation(std::vector<OperatorProxy> compositeOperation, std::set<int> targets)
 {
 	std::vector<std::vector<OperatorProxy>>	compositionList;
+
+	//Stop chains longer than maxSequenceLength
+	if (compositeOperation.size() >= maxSequenceLength) {return compositionList;}
 
     for (auto b : targets)
     {
