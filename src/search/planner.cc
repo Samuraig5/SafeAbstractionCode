@@ -165,7 +165,7 @@ int main(int argc, const char **argv) {
         cout << "Abstraction took " << step << " steps" << endl;
         cout << "Abstracted " << numSafeVariables << " safe variables." << endl;
         cout << task_proxy.get_variables().size() << " variables remain." << endl;
-        cout << "Abstracted " << abstractionPercentage*100 << "% of variables (" << abstractionPercentage << ")" << endl;
+        cout << "Abstracted " << abstractionPercentage*100 << "% of variables" << endl;
         cout << "Created " << numCompositeOperators << " composite operators." << endl;
         cout << "Original task had: " << numOperatorsInOriginalTask << " operators" << endl;
         std::cout << "========================================================================" << std::endl;
