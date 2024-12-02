@@ -69,11 +69,12 @@ int main(int argc, const char **argv) {
 
         int step = 0;
         int numSafeVariables = 0;
+        int numOriginalVariables = task_proxy.get_variables().size();
         int numOperatorsInOriginalTask = task_proxy.get_operators().size();
         int numCompositeOperators = 0;
         int numCompositionRemaining = numCompositionWithoutAbstraction;
 
-        cout << "> Original Task has: " << task_proxy.get_variables().size() << " variables" << endl;
+        cout << "> Original Task has: " << numOriginalVariables << " variables" << endl;
         while (continiueAbstraction)
         {
         	cout << endl;
@@ -158,10 +159,13 @@ int main(int argc, const char **argv) {
             }
         }
 
+        float abstractionPercentage = (float)numSafeVariables / numOriginalVariables;
+
         cout << endl;
         cout << "Abstraction took " << step << " steps" << endl;
         cout << "Abstracted " << numSafeVariables << " safe variables." << endl;
         cout << task_proxy.get_variables().size() << " variables remain." << endl;
+        cout << "Abstracted " << abstractionPercentage*100 << "% of variables (" << abstractionPercentage << ")" << endl;
         cout << "Created " << numCompositeOperators << " composite operators." << endl;
         cout << "Original task had: " << numOperatorsInOriginalTask << " operators" << endl;
         std::cout << "========================================================================" << std::endl;
