@@ -45,15 +45,20 @@ void compositor::composite()
             //	cout << "A is empty." << endl;
             //	notSafe = true; break;
             //}
-            if (!notBIsCommutative(newTargets.first, newTargets.second, c))
+            if (!notAIsInconsistentOrDisjoint(newTargets.first, newTargets.second, c))
+            {
+            	notSafe = true;
+                break;
+            }
+            else if (!effectsOfAInconsistentOrDisjointWithGoal(newTargets.first))
+            {
+            	notSafe = true;
+                break;
+            }
+            else if (!notBIsCommutative(newTargets.first, newTargets.second, c))
             {
             	//cout << "NotB is not commutative" << endl;
                 notSafe = true;
-                break;
-            }
-            else if (!notAIsInconsistentOrDisjoint(newTargets.first, newTargets.second, c))
-            {
-            	notSafe = true;
                 break;
             }
     		else
@@ -433,6 +438,38 @@ bool compositor::notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, 
     return true;
 }
 
+bool compositor::effectsOfAInconsistentOrDisjointWithGoal(std::set<int> A)
+{
+	GoalsProxy goals = taskProxy.get_goals();
+
+	for (auto a : A)
+	{
+        auto op = taskProxy.get_operators()[a];
+        bool disjoint = true;
+
+        for (auto post : op.get_effects())
+        {
+        	auto postFact = post.get_fact().get_pair();
+            for (auto goal : goals)
+            {
+            	auto goalFact = goal.get_pair();
+            	if (postFact.var == goalFact.var)
+            	{
+                	disjoint = false;
+                    if (postFact.value != goalFact.value)
+                    {
+                    	//Effects of A are inconsistent
+						return true;
+                    }
+                }
+            }
+            cout << "Effects of " << op.get_name() << " are not disjoint nor inconsistent" << endl;
+            if (!disjoint) {return false;}
+        }
+    }
+    return true;
+}
+
 std::pair<std::set<int>, std::set<int>> compositor::getCompositeTargets(std::vector<std::pair<int, int>> c)
 {
     std::set<int> A; //set of all actions whose effects include c
@@ -564,22 +601,23 @@ std::vector<std::vector<std::pair<int, int>>> compositor::getC(std::pair<Variabl
     //std::cout << "Removing invalid c..." << std::endl;
 
     std::vector<int> initialStates = abstractTask->get_initial_state_values();
-    GoalsProxy goalFacts = taskProxy.get_goals();
+    //GoalsProxy goalFacts = taskProxy.get_goals();
 
     std::vector<std::vector<std::pair<int, int>>> C;
 	for (auto c : possibleC)
 	{
 		bool trueInitially = true;
-		bool trueInGoal = true;
+		//bool trueInGoal = true;
 		for (auto fact : c)
 		{
 			if (initialStates[fact.first] != fact.second) {trueInitially = false;}
-        	for (auto goal : goalFacts){
-            	if (goal.get_variable().get_id() != fact.first){ } //trueInGoal = false; }
-            	else if (goal.get_value() != fact.second){ trueInGoal = false; }
-        	}
+        	//for (auto goal : goalFacts){
+            //	if (goal.get_variable().get_id() != fact.first){ } //trueInGoal = false; }
+            //	else if (goal.get_value() != fact.second){ trueInGoal = false; }
+        	//}
 		}
-		if (!trueInitially && !trueInGoal) {C.push_back(c);}
+		//if (!trueInitially && !trueInGoal) {C.push_back(c);}
+        if (!trueInitially) {C.push_back(c);}
 	}
 
     //std::cout << "Found " << C.size() << " c sets" << std::endl;

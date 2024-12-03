@@ -31,6 +31,7 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
         bool areIdenticalOperators(tasks::ExplicitOperator a, tasks::ExplicitOperator b);
         bool notBIsCommutative(std::set<int> A, std::set<int> B, std::vector<std::pair<int, int>> c);
         bool notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, std::vector<std::pair<int, int>> c);
+        bool effectsOfAInconsistentOrDisjointWithGoal(std::set<int> A);
         bool removesCausalCoupling(std::pair<VariableProxy, VariableProxy> varPair);
 
         void printPair(std::pair<VariableProxy, VariableProxy> varPair);
