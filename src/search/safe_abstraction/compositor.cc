@@ -37,13 +37,10 @@ void compositor::composite()
 
     	std::vector<std::vector<std::pair<int, int>>> C = getC(varPair); //Pass pair
 
-
-        printPair(varPair);
-        cout << endl;
-
+        //printPair(varPair); cout << endl;
     	for (auto c : C)
     	{
-            print_c(c);
+            //print_c(c); cout<<endl;
     		std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
             //if (newTargets.first.empty())
             //{
@@ -374,7 +371,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
            			if (notbEffect.get_fact().get_pair().var == aubPrecon.get_pair().var) {
 						if (notbEffect.get_fact().get_pair().value != aubPrecon.get_pair().value)
                         {
-                            std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
+                            //std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
                         	return false;
                         }
                     }
@@ -384,7 +381,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
                 	if (notbEffect.get_fact().get_pair().var == aubEffect.get_fact().get_pair().var) {
                         if (notbEffect.get_fact().get_pair().value != aubEffect.get_fact().get_pair().value)
                         {
-                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
+                        	//std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
 							return false;
                         }
                     }
@@ -396,7 +393,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
            			if (aubEffect.get_fact().get_pair().var == notbPrecon.get_pair().var){
                     	if (aubEffect.get_fact().get_pair().value != notbPrecon.get_pair().value)
                         {
-                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
+                        	//std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
 							return false;
                         }
                 	}
@@ -414,6 +411,8 @@ bool compositor::notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, 
     	if (A.count(op.get_id()) == 0) //If not in A
     	{
         	bool disjoint = true;
+            bool inconsistent = false;
+
         	for (auto post : op.get_effects())
             {
                 auto postFact = post.get_fact().get_pair();
@@ -423,19 +422,20 @@ bool compositor::notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, 
                 	if (postFact.var == cFact.first)
                 	{
                         disjoint = false;
+                        //cout << op.get_name() << " is not disjoint from "; print_c(c); cout << endl;
                     	if (postFact.value != cFact.second)
                         {
-                        	//Not A is inconsistent
-							return true;
+                        	//cout << op.get_name() << " is inconsistent from it though" << endl;
+							inconsistent = true;
+                            break;
                         }
                     }
                 }
+                if (inconsistent) {break;}
             }
-            if (!disjoint)
+            if (!disjoint && !inconsistent)
             {
-                cout << "(NotA): " << op.get_name() << " is not inconsistent nor disjoint from ";
-                print_c(c);
-                cout << endl;
+                //cout << "(!) " << op.get_name() << " is NOT disjoint NOR inconsistent from "; print_c(c); cout << endl;
                 return false;
             }
         }
