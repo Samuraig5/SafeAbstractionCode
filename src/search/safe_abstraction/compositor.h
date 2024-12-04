@@ -34,6 +34,8 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
         bool removesCausalCoupling(std::pair<VariableProxy, VariableProxy> varPair);
 
         void printPair(std::pair<VariableProxy, VariableProxy> varPair);
+        void print_c(std::vector<std::pair<int, int>> c);
+
     public:
         compositor(std::shared_ptr<AbstractTask> abstractTask, int maxSequenceLength, bool enable)
             : abstractTask(abstractTask), taskProxy(*abstractTask)

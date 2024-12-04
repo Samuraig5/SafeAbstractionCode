@@ -37,8 +37,13 @@ void compositor::composite()
 
     	std::vector<std::vector<std::pair<int, int>>> C = getC(varPair); //Pass pair
 
+
+        printPair(varPair);
+        cout << endl;
+
     	for (auto c : C)
     	{
+            print_c(c);
     		std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
             //if (newTargets.first.empty())
             //{
@@ -369,7 +374,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
            			if (notbEffect.get_fact().get_pair().var == aubPrecon.get_pair().var) {
 						if (notbEffect.get_fact().get_pair().value != aubPrecon.get_pair().value)
                         {
-                            //std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
+                            std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect -> aub.precon)" << std::endl;
                         	return false;
                         }
                     }
@@ -379,7 +384,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
                 	if (notbEffect.get_fact().get_pair().var == aubEffect.get_fact().get_pair().var) {
                         if (notbEffect.get_fact().get_pair().value != aubEffect.get_fact().get_pair().value)
                         {
-                        	//std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
+                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.effect <-> aub.effect)" << std::endl;
 							return false;
                         }
                     }
@@ -391,7 +396,7 @@ bool compositor::notBIsCommutative(std::set<int> A, std::set<int> B, std::vector
            			if (aubEffect.get_fact().get_pair().var == notbPrecon.get_pair().var){
                     	if (aubEffect.get_fact().get_pair().value != notbPrecon.get_pair().value)
                         {
-                        	//std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
+                        	std::cout << notbOp.get_name() << " and " << aubOp.get_name() << " are not commutative (notb.precon <- aub.effect)" << std::endl;
 							return false;
                         }
                 	}
@@ -426,7 +431,13 @@ bool compositor::notAIsInconsistentOrDisjoint(std::set<int> A, std::set<int> B, 
                     }
                 }
             }
-            if (!disjoint) {return false;}
+            if (!disjoint)
+            {
+                cout << "(NotA): " << op.get_name() << " is not inconsistent nor disjoint from ";
+                print_c(c);
+                cout << endl;
+                return false;
+            }
         }
     }
     //cout << "notA is disjoint or inconsistent from C" << endl;
@@ -575,7 +586,7 @@ std::vector<std::vector<std::pair<int, int>>> compositor::getC(std::pair<Variabl
 		{
 			if (initialStates[fact.first] != fact.second) {trueInitially = false;}
         	for (auto goal : goalFacts){
-            	if (goal.get_variable().get_id() != fact.first){ } //trueInGoal = false; }
+            	if (goal.get_variable().get_id() != fact.first){ }
             	else if (goal.get_value() != fact.second){ trueInGoal = false; }
         	}
 		}
@@ -589,4 +600,10 @@ std::vector<std::vector<std::pair<int, int>>> compositor::getC(std::pair<Variabl
 void compositor::printPair(std::pair<VariableProxy, VariableProxy> varPair)
 {
 	cout << "(" << varPair.first.get_name() << "," << varPair.second.get_name() << ") :";
+}
+
+void compositor::print_c(std::vector<std::pair<int, int>> c)
+{
+	cout << "c (" << taskProxy.get_variables()[c[0].first].get_name() << " = " << c[0].second <<
+      			"," << taskProxy.get_variables()[c[1].first].get_name() << " = " << c[1].second << ")";
 }
