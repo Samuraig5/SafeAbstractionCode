@@ -40,6 +40,7 @@ void compositor::composite()
         //printPair(varPair); cout << endl;
     	for (auto c : C)
     	{
+        	if (!isHarsh) { notSafe = false; }
             //print_c(c); cout<<endl;
     		std::pair<std::set<int>, std::set<int>> newTargets = getCompositeTargets(c);
             //if (newTargets.first.empty())
@@ -51,19 +52,19 @@ void compositor::composite()
             {
             	//cout << "NotB is not commutative" << endl;
                 notSafe = true;
-                break;
+                if (isHarsh) { break; }
             }
             else if (!notAIsInconsistentOrDisjoint(newTargets.first, newTargets.second, c))
             {
             	notSafe = true;
-                break;
+                if (isHarsh) { break; }
             }
             else if (!effectsOfAInconsistentOrDisjointWithGoal(newTargets.first))
             {
             	notSafe = true;
-                break;
+                if (isHarsh) { break; }
             }
-    		else
+    		else if (!notSafe)
     		{
             	compositeTargets.push_back(newTargets);
     			count++;
@@ -73,7 +74,7 @@ void compositor::composite()
     			//if (newTargets.second.size() > 1) {notSafe = true; break;}
     		}
     	}
-    	if (notSafe)
+    	if (isHarsh && notSafe)
         {
           	//cout << "c not safe." << endl;
             //printPair(varPair);

@@ -13,6 +13,7 @@ std::shared_ptr<AbstractTask> abstractTask;
 TaskProxy taskProxy;
 std::shared_ptr<AbstractTask> compositedTask;
 int maxSequenceLength;
+bool isHarsh;
 
 public:
 std::set<int> compositedOperatorIDs;
@@ -38,10 +39,11 @@ std::map<int, std::vector<OperatorProxy>> decompositOperations;
         void print_c(std::vector<std::pair<int, int>> c);
 
     public:
-        compositor(std::shared_ptr<AbstractTask> abstractTask, int maxSequenceLength, bool enable)
+        compositor(std::shared_ptr<AbstractTask> abstractTask, int maxSequenceLength, bool isHarsh, bool enable)
             : abstractTask(abstractTask), taskProxy(*abstractTask)
         {
    		  this->maxSequenceLength = maxSequenceLength;
+          this->isHarsh = isHarsh;
           if (enable) { composite(); }
         }
         std::shared_ptr<AbstractTask> getCompositedTask() {return compositedTask;}

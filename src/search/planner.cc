@@ -57,10 +57,12 @@ int main(int argc, const char **argv) {
         bool doComposition = false;
         // How often should we perform a composition without a new abstraction before giving up? (-1 means no limit)
         int numCompositionWithoutAbstraction = -1;
+        bool doHarshComposition = true;
         int maxSequenceLength = INT_MAX;
         bool continiueAbstraction = true;
 
 		if (myargstring == "--all") {doAbstraction = true; doComposition = true;}
+        else if (myargstring == "--all_soft") {doAbstraction = true; doComposition = true; doHarshComposition = false;}
 		else if (myargstring == "--all_2") {doAbstraction = true; doComposition = true; maxSequenceLength = 2;}
 		else if (myargstring == "--abstraction") {doAbstraction = true; doComposition = false;}
 		else if (myargstring == "--none") {continiueAbstraction = false;}
@@ -122,7 +124,7 @@ int main(int argc, const char **argv) {
             	noNewAbstractionAfterComposition = true;
                 doComposition = false;
             }
-            compositor compositor(original_task, maxSequenceLength, doComposition);
+            compositor compositor(original_task, maxSequenceLength, doHarshComposition, doComposition);
             if (!compositor.compositeOperators.empty())
             {
             	numCompositeOperators += compositor.compositeOperators.size();
