@@ -105,7 +105,7 @@ void compositor::composite()
     	if (removesCausalCoupling(varPair) && compositeOperators.size() > 0)
         {
           //cout << "Causal Coupling is removed." << endl;
-          cout << "Tried " << pairCounter << " variable pairs and found a causal decoupling" << endl;
+          cout << "Tried " << pairCounter << " variable pairs and found a causal decoupling for "; printPair(varPair); cout << endl;
           return;
         }
     	else

@@ -42,10 +42,10 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
   	cout << "> Simplifing Task (Abstracting Varialbes)" << endl;
 
 
-    //print_problem();
+    print_problem();
     //print_variables();
     //print_mutexes();
-    //print_operators();
+    print_operators();
 
     //axioms.clear();
     simplifyOperators(safeVariables);
