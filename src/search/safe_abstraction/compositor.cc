@@ -124,8 +124,8 @@ bool compositor::removesCausalCoupling(std::pair<VariableProxy, VariableProxy> v
 {
 	for (auto compOp : compositeOperators)
 	{
-        int var1Precon;
-        int var2Precon;
+        int var1Precon = -1;
+        int var2Precon = -1;
         bool changedVar1 = false;
         bool changedVar2 = false;
 
@@ -141,6 +141,9 @@ bool compositor::removesCausalCoupling(std::pair<VariableProxy, VariableProxy> v
             	var2Precon = pre.value;
             }
 		}
+        //Since we don't have a precon on this variable we can't garantee that it didn't change.
+        if (var1Precon == -1) { changedVar1 = true; }
+        if (var2Precon == -1) { changedVar2 = true; }
 
 		auto postCons = compOp.effects;
 		for (auto post : postCons)
