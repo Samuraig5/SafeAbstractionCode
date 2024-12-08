@@ -141,10 +141,11 @@ void refiner::refine_step(Plan &plan, abstractor &abstractor)
             continue;}
         else
         {
+            //cout << goal.get_variable().get_name() << " is not in its goal value " << goal.get_value() << ". Instead it has value: " << state[goalVar].value << endl;
             int index;
             if (!plan.empty())
             {
-                index = plan.size()-1;
+                index = plan.size();
             }
             else
             {
@@ -167,7 +168,26 @@ void refiner::insertMissingOperations(Plan &plan, abstractor &abstractor, int in
     std::reverse(newOperations.begin(), newOperations.end());
     for (int opID : newOperations)
     {
-        //cout << "  Inserting operation: " << abstractor.getTaskProxy().get_operators()[opID].get_name() << endl;
+        auto op = abstractor.getTaskProxy().get_operators()[opID];
+        cout << "  Inserting operation: " << "(" << op.get_id() << ") " << op.get_name() << endl;
+        /*
+        cout << "    " << "Precon: ";
+        for (auto precondition : op.get_preconditions())
+        {
+            auto precon_var = precondition.get_variable();
+            int precon_val = precondition.get_value();
+            cout << precon_var.get_name() << " = " << precon_val << ", ";
+        }
+        cout << endl << "    " << "Postcon: ";
+        for (auto postcondition : op.get_effects())
+        {
+            auto postcondition_fact = postcondition.get_fact();
+            auto postcon_var = postcondition_fact.get_variable();
+            int postcon_val = postcondition_fact.get_value();
+            cout << postcon_var.get_name() << " = " << postcon_val << ", ";
+        }
+        cout << endl << endl;
+         */
         plan.insert(plan.begin()+insertionIndex, OperatorID(opID));
     }
 }
