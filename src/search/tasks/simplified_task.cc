@@ -6,8 +6,8 @@ namespace tasks {
 SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, compositor compositor) : RootTask(*parent)
 {
   cout << "> Simplifing Task (Composing Operators)" << endl;
-  //print_problem();
-  //print_operators();
+  print_problem();
+  print_operators();
 
   std::set<int> compositedOperators = compositor.compositedOperatorIDs;
   //Clear the compositedOperators
@@ -42,10 +42,10 @@ SimplifiedTask::SimplifiedTask(const shared_ptr<RootTask> parent, std::list<int>
   	cout << "> Simplifing Task (Abstracting Varialbes)" << endl;
 
 
-    print_problem();
+    //print_problem();
     //print_variables();
     //print_mutexes();
-    print_operators();
+    //print_operators();
 
     //axioms.clear();
     simplifyOperators(safeVariables);
