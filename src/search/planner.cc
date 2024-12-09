@@ -83,6 +83,9 @@ int main(int argc, const char **argv) {
 
         cout << "> Original Task has: " << numOriginalVariables << " variables and " << numOriginalAtoms << " atoms" << endl;
 
+        utils::Timer abstraction_timer(false);
+      	utils::Timer composition_timer(false);
+
         while (continiueAbstraction)
         {
         	cout << endl;
@@ -92,7 +95,8 @@ int main(int argc, const char **argv) {
             original_task = tasks::g_root_task;
             abstractor abstractor(original_task);
             std::list<int> safe_variables;
-            if (doAbstraction) {safe_variables = abstractor.find_safe_variables();}
+            abstraction_timer.resume();
+            if (doAbstraction){ safe_variables = abstractor.find_safe_variables(); }
 
             if (!safe_variables.empty())
             {
@@ -116,6 +120,7 @@ int main(int argc, const char **argv) {
             shared_ptr<tasks::RootTask> original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
             shared_ptr<tasks::SimplifiedTask> simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, safe_variables);
             tasks::g_root_task = simplified_task;
+            abstraction_timer.stop();
 
             // = COMPOSITOR ==
             original_task = tasks::g_root_task;
@@ -124,6 +129,7 @@ int main(int argc, const char **argv) {
             	noNewAbstractionAfterComposition = true;
                 doComposition = false;
             }
+            composition_timer.resume();
             compositor compositor(original_task, maxSequenceLength, doHarshComposition, doComposition);
             if (!compositor.compositeOperators.empty())
             {
@@ -141,6 +147,7 @@ int main(int argc, const char **argv) {
             original_root_task = dynamic_pointer_cast<tasks::RootTask>(original_task);
             simplified_task = make_shared<tasks::SimplifiedTask>(original_root_task, compositor);
             tasks::g_root_task = simplified_task;
+            composition_timer.stop();
 
             if (!foundCompsitableOperators && !foundSafeVariables)
             {
@@ -182,6 +189,10 @@ int main(int argc, const char **argv) {
         cout << "Abstracted " << abstractionPercentageAtoms*100 << "% of atoms" << endl;
         cout << "Created " << numCompositeOperators << " composite operators." << endl;
         cout << "Original task had: " << numOperatorsInOriginalTask << " operators" << endl;
+        cout << endl;
+      	cout << "Abstraction time: " << abstraction_timer << endl;
+        cout << "Composition time: " << composition_timer << endl;
+
         std::cout << "========================================================================" << std::endl;
     }
     TaskProxy task_proxy = TaskProxy(*tasks::g_root_task);
@@ -213,7 +224,10 @@ int main(int argc, const char **argv) {
       if (search_algorithm->found_solution())
       {
         cout << endl;
+        utils::Timer refinement_timer;
         Plan refinedPlan = refiner::refine_plan(search_algorithm->get_plan(), abstraction_hirarchy);
+        refinement_timer.stop();
+        cout << "Refinement time: " << refinement_timer << endl;
         search_algorithm->set_plan(refinedPlan);
       }
       cout << endl;
@@ -221,6 +235,7 @@ int main(int argc, const char **argv) {
       search_algorithm->print_statistics();
 
       utils::g_log << "Search time: " << search_timer << endl;
+      utils::g_log << "Total time: " << utils::g_timer << endl;
 
       ExitCode exitcode = search_algorithm->found_solution()
       ? ExitCode::SUCCESS
@@ -234,12 +249,15 @@ int main(int argc, const char **argv) {
       cout << "Skipping search algorithm." << endl;
       Plan emptyPlan;
       cout << endl;
+      utils::Timer refinement_timer;
       Plan refinedPlan = refiner::refine_plan(emptyPlan, abstraction_hirarchy);
+      refinement_timer.stop();
+      cout << "Refinement time: " << refinement_timer << endl;
       cout << endl;
       PlanManager plan_manager;
       plan_manager.save_plan(refinedPlan, task_proxy);
+      utils::g_timer.stop();
       utils::g_log << "Search time: 0.0s" << endl;
+      utils::g_log << "Total time: " << utils::g_timer << endl;
     }
-
-    utils::g_log << "Total time: " << utils::g_timer << endl;
 }
